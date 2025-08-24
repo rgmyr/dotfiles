@@ -17,7 +17,7 @@ Chezmoi is a dotfile manager that uses templates to adapt configurations for dif
 
 ### One-Liner
 ```bash
-curl -sfL https://raw.githubusercontent.com/rgmyr/dotfiles/main/install.sh | bash
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply rgmyr
 ```
 
 ### Manual Installation

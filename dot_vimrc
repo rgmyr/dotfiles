@@ -19,7 +19,7 @@ autocmd Filetype javascript,jsx setlocal ts=2 sw=2 sts=0 expandtab
 autocmd Filetype typescript,tsx setlocal ts=2 sw=2 sts=0 expandtab
 autocmd Filetype json setlocal ts=2 sw=2 expandtab
 autocmd Filetype yaml,yml setlocal ts=2 sw=2 expandtab
-autocmd Filetype rust setlocal expandtab tabstop=4 shiftwifth=4 softtabstop=4
+autocmd Filetype rust setlocal expandtab tabstop=4 shiftwidth=4 softtabstop=4
 
 " Display settings
 set list listchars=tab:\ \ 
@@ -35,7 +35,8 @@ set sidescrolloff=12
 " Ignore patterns for wildmenu
 set wildignore=*.o,*.obj,*~
 set wildignore+=*vim/backups*
-set wildignore+=*sass-cache* set wildignore+=*DS_Store*
+set wildignore+=*sass-cache*
+set wildignore+=*DS_Store*
 set wildignore+=vendor/rails/**
 set wildignore+=vendor/cache/**
 set wildignore+=*.gem

@@ -33,13 +33,20 @@ else
     echo "✅ Zsh is already the default shell"
 fi
 
-{{- if eq .os "darwin" }}
-# macOS: Set up fzf integration
-if [[ -f "/opt/homebrew/opt/fzf/install" ]] && [[ ! -f "$HOME/.fzf.zsh" ]]; then
-    echo "🔍 Setting up fzf integration..."
-    /opt/homebrew/opt/fzf/install --key-bindings --completion --no-update-rc
-elif [[ -f "/usr/local/opt/fzf/install" ]] && [[ ! -f "$HOME/.fzf.zsh" ]]; then
-    /usr/local/opt/fzf/install --key-bindings --completion --no-update-rc
+{{- if eq .chezmoi.os "darwin" }}
+# macOS: Set up fzf integration based on architecture
+if [[ $(uname -m) == "arm64" ]]; then
+    # Apple Silicon Mac
+    if [[ -f "/opt/homebrew/opt/fzf/install" ]] && [[ ! -f "$HOME/.fzf.zsh" ]]; then
+        echo "🔍 Setting up fzf integration..."
+        /opt/homebrew/opt/fzf/install --key-bindings --completion --no-update-rc
+    fi
+else
+    # Intel Mac
+    if [[ -f "/usr/local/opt/fzf/install" ]] && [[ ! -f "$HOME/.fzf.zsh" ]]; then
+        echo "🔍 Setting up fzf integration..."
+        /usr/local/opt/fzf/install --key-bindings --completion --no-update-rc
+    fi
 fi
 {{- else }}
 # Linux: fzf should already be configured via package installation

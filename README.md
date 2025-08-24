@@ -1,6 +1,10 @@
-# Ross's Dotfiles
+# `rgmyr's` Dotfiles
 
-My cross-platform dotfile setup for macOS and Debian-based systems, managed with [chezmoi](https://chezmoi.io) Intending to add Windows support to the extent possible.
+Cross-platform dotfile setup for macOS and Debian-based systems, managed with [chezmoi](https://chezmoi.io). Intending to add Windows support to the extent possible.
+
+## How Chezmoi Works
+
+Chezmoi is a dotfile manager that uses templates to automatically adapt your configuration for different machines. It detects your OS, architecture, and environment, then generates the right paths and settings. For example, it automatically uses `/opt/homebrew` on Apple Silicon Macs and `/usr/local` on Intel Macs or when running under Rosetta 2.
 
 ## Priorities
 

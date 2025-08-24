@@ -1,33 +1,68 @@
 #!/bin/bash
 set -e
 
-echo "📦 Installing essential packages for {{ .os }}..."
+echo "📦 Installing essential packages for {{ .chezmoi.os }}..."
 
-{{- if eq .os "darwin" }}
+{{- if eq .chezmoi.os "darwin" }}
 # macOS package installation with Homebrew
 if ! command -v brew &> /dev/null; then
     echo "🍺 Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     
-    # Add Homebrew to PATH for Apple Silicon Macs
+    # Add Homebrew to PATH based on architecture
     if [[ $(uname -m) == "arm64" ]]; then
         echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
         eval "$(/opt/homebrew/bin/brew shellenv)"
+    else
+        echo 'eval "$(/usr/local/bin/brew shellenv)"' >> ~/.zprofile
+        eval "$(/usr/local/bin/brew shellenv)"
     fi
 fi
 
 # Update Homebrew
 brew update
 
-# Install essential packages
+# Install uv first (Python package manager)
+if ! command -v uv &> /dev/null; then
+    echo "🐍 Installing uv (Python package manager)..."
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    # Add uv to PATH for current session
+    export PATH="$HOME/.cargo/bin:$PATH"
+    # Also add to shell profile for future sessions
+    if ! grep -q "export PATH.*cargo/bin" ~/.zprofile; then
+        echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.zprofile
+    fi
+else
+    echo "✅ uv already installed"
+fi
+
+# Install Python via uv if not available
+if ! command -v python3 &> /dev/null; then
+    echo "🐍 Installing Python via uv..."
+    if command -v uv &> /dev/null; then
+        uv python install 3.12
+        # Add uv-managed Python to PATH
+        export PATH="$HOME/.local/bin:$PATH"
+        if ! grep -q "export PATH.*local/bin" ~/.zprofile; then
+            echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zprofile
+        fi
+    else
+        echo "⚠️  uv not available, falling back to Homebrew Python..."
+        brew install python@3.12
+    fi
+else
+    echo "✅ Python already available"
+fi
+
+# Install essential packages (excluding Python since we handle it above)
 packages=(
-    "zsh"
-    "fzf" 
-    "neovim"
-    "vim"
     "git"
     "curl"
     "wget"
+    "zsh"
+    "fzf" 
+    "vim"
+    "neovim"
     "tree"
     "htop"
     "jq"
@@ -51,10 +86,16 @@ for package in "${packages[@]}"; do
 done
 
 # Install fzf key bindings and fuzzy completion
-if [[ -f "/opt/homebrew/opt/fzf/install" ]]; then
-    /opt/homebrew/opt/fzf/install --key-bindings --completion --no-update-rc
-elif [[ -f "/usr/local/opt/fzf/install" ]]; then
-    /usr/local/opt/fzf/install --key-bindings --completion --no-update-rc
+if [[ $(uname -m) == "arm64" ]]; then
+    # Apple Silicon Mac
+    if [[ -f "/opt/homebrew/opt/fzf/install" ]]; then
+        /opt/homebrew/opt/fzf/install --key-bindings --completion --no-update-rc
+    fi
+else
+    # Intel Mac
+    if [[ -f "/usr/local/opt/fzf/install" ]]; then
+        /usr/local/opt/fzf/install --key-bindings --completion --no-update-rc
+    fi
 fi
 
 # Install global npm packages
@@ -63,22 +104,54 @@ if command -v npm &> /dev/null; then
     npm install -g @google/gemini-cli
 fi
 
-{{- else if (or (eq .os "linux") (eq .chezmoi.osRelease.id "ubuntu") (eq .chezmoi.osRelease.id "debian")) }}
+{{- else if (or (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "ubuntu") (eq .chezmoi.osRelease.id "debian")) }}
 # Debian/Ubuntu package installation
 echo "🐧 Installing packages for Debian/Ubuntu..."
 
 # Update package list
 sudo apt update
 
-# Install essential packages
+# Install uv first (Python package manager)
+if ! command -v uv &> /dev/null; then
+    echo "🐍 Installing uv (Python package manager)..."
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    # Add uv to PATH for current session
+    export PATH="$HOME/.cargo/bin:$PATH"
+    # Also add to shell profile for future sessions
+    if ! grep -q "export PATH.*cargo/bin" ~/.zprofile; then
+        echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.zprofile
+    fi
+else
+    echo "✅ uv already installed"
+fi
+
+# Install Python via uv if not available
+if ! command -v python3 &> /dev/null; then
+    echo "🐍 Installing Python via uv..."
+    if command -v uv &> /dev/null; then
+        uv python install 3.12
+        # Add uv-managed Python to PATH
+        export PATH="$HOME/.local/bin:$PATH"
+        if ! grep -q "export PATH.*local/bin" ~/.zprofile; then
+            echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zprofile
+        fi
+    else
+        echo "⚠️  uv not available, falling back to system Python..."
+        sudo apt install -y python3 python3-pip
+    fi
+else
+    echo "✅ Python already available"
+fi
+
+# Install essential packages (excluding Python since we handle it above)
 packages=(
-    "zsh"
-    "fzf"
-    "neovim"
-    "vim"
     "git" 
     "curl"
     "wget"
+    "zsh"
+    "fzf"
+    "vim"
+    "neovim"
     "tree"
     "htop"
     "jq"
@@ -87,7 +160,6 @@ packages=(
     "bat"
     "tmux"
     "build-essential"
-    "python3-pip"
     "nodejs"
     "npm"
 )

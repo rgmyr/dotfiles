@@ -44,8 +44,8 @@ if ! command -v chezmoi &>/dev/null; then
   fi
 fi
 
-# Initialize chezmoi with this repository (replace with your actual repo)
-REPO_URL="${1:-https://github.com/yourusername/dotfiles.git}"
+# Initialize chezmoi with this repository
+REPO_URL="${1:-https://github.com/rgmyr/dotfiles.git}"
 
 if [[ -d "$HOME/.local/share/chezmoi" ]]; then
   echo -e "${YELLOW}Chezmoi directory exists, pulling latest changes...${NC}"

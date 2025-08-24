@@ -6,7 +6,16 @@ hostname = {{ .chezmoi.hostname | quote }}
 # OS-specific package managers
 {{- if eq .chezmoi.os "darwin" }}
 package_manager = "brew"
+# Architecture-aware paths for dual Intel/Apple Silicon setup
+{{- if eq .chezmoi.arch "arm64" }}
+# Native Apple Silicon Mac
+brew_prefix = "/opt/homebrew"
 fzf_path = "/opt/homebrew/opt/fzf/shell"
+{{- else }}
+# Intel Mac or Apple Silicon running under Rosetta 2
+brew_prefix = "/usr/local"
+fzf_path = "/usr/local/opt/fzf/shell"
+{{- end }}
 {{- else if (or (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "ubuntu") (eq .chezmoi.osRelease.id "debian")) }}
 package_manager = "apt"
 fzf_path = "/usr/share/doc/fzf/examples"

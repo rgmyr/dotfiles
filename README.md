@@ -1,10 +1,10 @@
-# `rgmyr's` Dotfiles
+# `@rgmyr.files`
 
-Cross-platform dotfile setup for macOS and Debian-based systems, managed with [chezmoi](https://chezmoi.io). Intending to add Windows support to the extent possible, or at least WSL.
+Cross-platform dotfile setup for macOS and Debian-based systems, managed with [chezmoi](https://chezmoi.io). Intending to add Windows support to the extent possible, or at least verify Debain setup works in WSL.
 
 ## How Chezmoi Works
 
-Chezmoi is a dotfile manager that uses templates to automatically adapt your configuration for different machines. It detects your OS, architecture, and environment, then generates the right paths and settings. For example, it automatically uses `/opt/homebrew` on Apple Silicon Macs and `/usr/local` on Intel Macs or when running under Rosetta 2.
+Chezmoi is a dotfile manager that uses templates to adapt configurations for different machines. It detects OS, architecture, and environment, then generates the right paths and settings. For example, we automatically use `/opt/homebrew` on Apple Silicon Macs and `/usr/local` on Intel Macs or when running under Rosetta 2.
 
 ## Priorities
 
@@ -38,10 +38,12 @@ tmux new -s work
 ## 🛠️ What Gets Installed
 
 ### Core Applications
-- **[Zsh](https://www.zsh.org/)** + [Oh-my-zsh](https://ohmyz.sh/) (modern shell with themes and plugins)
-- **[Neovim](https://neovim.io/)** with [LazyVim](https://www.lazyvim.org/) (LazyVim temporarily disabled until I can get automatic setup working without creating `lspserver` or `globalleader` issues)
-- **[tmux](https://github.com/tmux/tmux/wiki)** (terminal multiplexer)
+- **[Zsh](https://www.zsh.org/)** + [Oh-my-zsh](https://ohmyz.sh/)
+- **[Neovim](https://neovim.io/)** with [LazyVim](https://www.lazyvim.org/)
+- **[tmux](https://github.com/tmux/tmux/wiki)** terminal multiplexer
 - **[fzf](https://junegunn.github.io/fzf/)** (fuzzy finder for everything)
+
+**LazyVim is temporarily disabled until I can get the automatic setup working without creating `lspserver` or `globalleader` issues.**
 
 ### Modern CLI Tools (Rust-powered)
 | Traditional | Modern | Purpose |
@@ -118,15 +120,13 @@ Shift+Tab           # Jump out of brackets/quotes (insert mode)
 
 ### 🖥️ tmux (Terminal Multiplexer)
 
-Think of `tmux` as having different nested groups of shell sessions for different projects or tasks.
-
 The `tmux server` is a local process that manages:
 
 - multiple ongoing terminal sessions (like an instance of a terminal emulator)
 - each with multiple windows (like tabs within a session)
 - each having one or more panes arranged in an arbitrary grid
 - sessions and windows can be named
-- panes can be quickly split and resized
+- panes can be quickly split, unsplit, and resized
 
 #### Session Management
 ```bash
@@ -229,6 +229,7 @@ Possible AI assistance tools:
 - **Aider**: Terminal-based AI pair programming
 - **Supermaven**: Fast AI completion in Neovim
 - **Cursor CLI**: Command-line version of Cursor's AI features
+- **avante.nvim**: Neovim plugin for AI-assisted development
 
 ## 🔧 Customization & Management
 

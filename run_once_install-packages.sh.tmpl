@@ -1,0 +1,140 @@
+#!/bin/bash
+set -e
+
+echo "📦 Installing essential packages for {{ .os }}..."
+
+{{- if eq .os "darwin" }}
+# macOS package installation with Homebrew
+if ! command -v brew &> /dev/null; then
+    echo "🍺 Installing Homebrew..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    
+    # Add Homebrew to PATH for Apple Silicon Macs
+    if [[ $(uname -m) == "arm64" ]]; then
+        echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    fi
+fi
+
+# Update Homebrew
+brew update
+
+# Install essential packages
+packages=(
+    "zsh"
+    "fzf" 
+    "neovim"
+    "vim"
+    "git"
+    "curl"
+    "wget"
+    "tree"
+    "htop"
+    "jq"
+    "ripgrep"
+    "fd"
+    "bat"
+    "eza"  # modern ls replacement
+    "zoxide"
+    "yazi"
+    "tmux"
+    "node"  # for npm packages
+)
+
+for package in "${packages[@]}"; do
+    if ! brew list "$package" &> /dev/null; then
+        echo "Installing $package..."
+        brew install "$package"
+    else
+        echo "✅ $package already installed"
+    fi
+done
+
+# Install fzf key bindings and fuzzy completion
+if [[ -f "/opt/homebrew/opt/fzf/install" ]]; then
+    /opt/homebrew/opt/fzf/install --key-bindings --completion --no-update-rc
+elif [[ -f "/usr/local/opt/fzf/install" ]]; then
+    /usr/local/opt/fzf/install --key-bindings --completion --no-update-rc
+fi
+
+# Install global npm packages
+if command -v npm &> /dev/null; then
+    echo "📦 Installing global npm packages..."
+    npm install -g @google/gemini-cli
+fi
+
+{{- else if (or (eq .os "linux") (eq .chezmoi.osRelease.id "ubuntu") (eq .chezmoi.osRelease.id "debian")) }}
+# Debian/Ubuntu package installation
+echo "🐧 Installing packages for Debian/Ubuntu..."
+
+# Update package list
+sudo apt update
+
+# Install essential packages
+packages=(
+    "zsh"
+    "fzf"
+    "neovim"
+    "vim"
+    "git" 
+    "curl"
+    "wget"
+    "tree"
+    "htop"
+    "jq"
+    "ripgrep"
+    "fd-find"
+    "bat"
+    "tmux"
+    "build-essential"
+    "python3-pip"
+    "nodejs"
+    "npm"
+)
+
+for package in "${packages[@]}"; do
+    if ! dpkg -l | grep -q "^ii  $package "; then
+        echo "Installing $package..."
+        sudo apt install -y "$package"
+    else
+        echo "✅ $package already installed"
+    fi
+done
+
+# Install eza (not in standard repos)
+if ! command -v eza &> /dev/null; then
+    echo "📦 Installing eza..."
+    wget -c https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz -O - | tar xz
+    sudo mv eza /usr/local/bin/
+fi
+
+# Install zoxide
+if ! command -v zoxide &> /dev/null; then
+    echo "📦 Installing zoxide..."
+    curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
+fi
+
+# Install yazi  
+if ! command -v yazi &> /dev/null; then
+    echo "📦 Installing yazi..."
+    cargo install --locked yazi-fm yazi-cli
+fi
+
+# Create symlinks for fd and bat (they have different names on Ubuntu)
+if command -v fdfind &> /dev/null && ! command -v fd &> /dev/null; then
+    sudo ln -sf $(which fdfind) /usr/local/bin/fd
+fi
+
+if command -v batcat &> /dev/null && ! command -v bat &> /dev/null; then
+    sudo ln -sf $(which batcat) /usr/local/bin/bat
+fi
+
+# Install global npm packages
+if command -v npm &> /dev/null; then
+    echo "📦 Installing global npm packages..."
+    npm install -g @google/gemini-cli
+fi
+
+{{- end }}
+
+echo "✅ Package installation complete!"

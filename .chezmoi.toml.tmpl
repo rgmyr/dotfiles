@@ -1,0 +1,21 @@
+[data]
+os = {{ .chezmoi.os | quote }}
+arch = {{ .chezmoi.arch | quote }}
+hostname = {{ .chezmoi.hostname | quote }}
+
+# OS-specific package managers
+{{- if eq .chezmoi.os "darwin" }}
+package_manager = "brew"
+fzf_path = "/opt/homebrew/opt/fzf/shell"
+{{- else if (or (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "ubuntu") (eq .chezmoi.osRelease.id "debian")) }}
+package_manager = "apt"
+fzf_path = "/usr/share/doc/fzf/examples"
+{{- end }}
+
+# User preferences
+editor = "nvim"
+shell = "/bin/zsh"
+
+[git]
+autoCommit = true
+autoPush = true

@@ -1,0 +1,69 @@
+" ======================================================
+" ================== BASIC VIM CONFIG ==================
+" ======================================================
+" This is a fallback config for systems without Neovim
+
+set t_Co=256
+syntax on
+set ruler
+set number
+set autoindent
+set smartindent
+set smarttab
+
+" File-specific indentation
+autocmd Filetype python setlocal expandtab tabstop=4 shiftwidth=4 softtabstop=4
+autocmd Filetype html setlocal ts=2 sw=2 expandtab
+autocmd Filetype css setlocal ts=2 sw=2 expandtab
+autocmd Filetype javascript,jsx setlocal ts=2 sw=2 sts=0 expandtab
+autocmd Filetype typescript,tsx setlocal ts=2 sw=2 sts=0 expandtab
+autocmd Filetype json setlocal ts=2 sw=2 expandtab
+autocmd Filetype yaml,yml setlocal ts=2 sw=2 expandtab
+autocmd Filetype rust setlocal expandtab tabstop=4 shiftwifth=4 softtabstop=4
+
+" Display settings
+set list listchars=tab:\ \ 
+set ignorecase
+set smartcase
+set incsearch
+set showmatch
+set wildmode=list:longest
+set wildmenu
+set scrolloff=8
+set sidescrolloff=12
+
+" Ignore patterns for wildmenu
+set wildignore=*.o,*.obj,*~
+set wildignore+=*vim/backups*
+set wildignore+=*sass-cache* set wildignore+=*DS_Store*
+set wildignore+=vendor/rails/**
+set wildignore+=vendor/cache/**
+set wildignore+=*.gem
+set wildignore+=log/**
+set wildignore+=tmp/**
+set wildignore+=*.png,*.jpg,*.gif
+set wildignore+=node_modules/**
+set wildignore+=.git/**
+
+" Key mappings
+inoremap jj <ESC>
+nnoremap ; :
+nnoremap <leader>rc :!chezmoi edit ~/.vimrc<CR>
+
+" Better navigation
+nnoremap <C-h> <C-w>h
+nnoremap <C-j> <C-w>j  
+nnoremap <C-k> <C-w>k
+nnoremap <C-l> <C-w>l
+
+" Quick save and quit
+nnoremap <leader>w :w<CR>
+nnoremap <leader>q :q<CR>
+nnoremap <leader>x :x<CR>
+
+" Clear search highlighting
+nnoremap <leader>/ :nohl<CR>
+
+" Basic status line
+set laststatus=2
+set statusline=%f\ %m%r%h%w\ [%Y]\ [%{&ff}]\ %=%l,%c\ %p%%

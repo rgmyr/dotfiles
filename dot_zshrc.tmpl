@@ -1,0 +1,235 @@
+# ======================================================
+# =============== CROSS-PLATFORM ZSHRC ================
+# ======================================================
+
+# Path configuration
+path=(
+    ~/bin
+    ~/.local/bin
+{{- if eq .os "darwin" }}
+    /opt/homebrew/bin
+    /opt/homebrew/sbin
+    /usr/local/bin
+{{- else }}
+    /usr/local/bin
+{{- end }}
+    $path
+)
+# Remove duplicates from path
+typeset -U path
+
+# Zsh options
+setopt AUTO_CD
+setopt HIST_VERIFY
+setopt SHARE_HISTORY
+setopt APPEND_HISTORY
+setopt INC_APPEND_HISTORY
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_SPACE
+
+# History config
+HISTSIZE=10000
+SAVEHIST=10000
+HISTFILE=~/.zsh_history
+
+# Better basic completions
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+
+# Default editor
+{{- if eq .editor "nvim" }}
+export EDITOR="nvim"
+{{- else }}
+export EDITOR="vim"
+{{- end }}
+
+# Oh My Zsh configuration
+export ZSH="$HOME/.oh-my-zsh"
+ZSH_THEME="gnzh"
+
+# Plugins
+plugins=(
+    git
+    docker
+    docker-compose
+    zsh-history-substring-search
+{{- if eq .os "darwin" }}
+    brew
+    macos
+{{- else }}
+    ubuntu
+{{- end }}
+)
+
+# Enable command auto-correction
+ENABLE_CORRECTION="true"
+COMPLETION_WAITING_DOTS="%F{blue}waiting...%f"
+
+source $ZSH/oh-my-zsh.sh
+
+# ======================================================
+# ================== FZF INTEGRATION ==================
+# ======================================================
+
+# Enable fzf keybindings and fuzzy auto-completion
+{{- if eq .os "darwin" }}
+source {{ .fzf_path }}/key-bindings.zsh
+source {{ .fzf_path }}/completion.zsh
+{{- else }}
+source {{ .fzf_path }}/key-bindings.zsh
+source {{ .fzf_path }}/completion.zsh
+{{- end }}
+
+# Set "Github Dark" colors for fzf widgets
+FZF_DEFAULT_OPTS=""
+FZF_DEFAULT_OPTS+="--height 40% "
+FZF_DEFAULT_OPTS+="--layout=reverse "
+FZF_DEFAULT_OPTS+="--border "
+FZF_DEFAULT_OPTS+="--color="
+FZF_DEFAULT_OPTS+="fg:#c9d1d9,bg:#1c2128,hl:#58a6ff,"
+FZF_DEFAULT_OPTS+="fg+:#d0d7de,bg+:#22272e,hl+:#79c0ff,"
+FZF_DEFAULT_OPTS+="info:#8b949e,prompt:#58a6ff,pointer:#79c0ff,"
+FZF_DEFAULT_OPTS+="marker:#f85149,spinner:#58a6ff,header:#58a6ff"
+FZF_DEFAULT_OPTS+=" "
+export FZF_DEFAULT_OPTS
+
+# ======================================================
+# ===================== ALIASES ========================
+# ======================================================
+
+# Navigation
+alias ll='ls -alh'
+alias la='ls -A' 
+alias l='ls -CF'
+alias ..='cd ..'
+alias ...='cd ../..'
+
+# Modern CLI tools
+alias ls='eza --icons'
+alias ll='eza -la --icons --git'
+alias tree='eza --tree --icons'
+alias cat='bat'
+alias find='fd'
+alias grep='rg'
+alias cd='z'  # zoxide smart cd
+
+# File management
+alias files='yazi'
+alias fm='yazi'
+
+# Git shortcuts
+alias gs='git status'
+alias gp='git pull'
+alias gl='git log --oneline -10'
+alias gb='git branch'
+alias gco='git checkout'
+alias gd='git diff'
+alias ga='git add'
+alias gc='git commit'
+
+# Docker shortcuts
+alias dps='docker ps'
+alias dc='docker compose'
+alias dcup='docker compose up -d'
+alias dcdown='docker compose down'
+alias dclogs='docker compose logs -f'
+alias dexec='docker exec -it'
+
+# System monitoring
+alias ports='netstat -tulpn'
+alias disk='df -h'
+alias mem='free -h'
+alias reload='source ~/.zshrc'
+
+# Quick chezmoi helpers
+alias cm='chezmoi'
+alias cma='chezmoi apply'
+alias cme='chezmoi edit'
+alias cms='chezmoi status'
+alias cmd='chezmoi diff'
+
+{{- if eq .os "darwin" }}
+# macOS specific aliases
+alias flushdns='sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder'
+alias showfiles='defaults write com.apple.finder AppleShowAllFiles YES; killall Finder /System/Library/CoreServices/Finder.app'
+alias hidefiles='defaults write com.apple.finder AppleShowAllFiles NO; killall Finder /System/Library/CoreServices/Finder.app'
+{{- else }}
+# Linux specific aliases
+alias open='xdg-open'
+alias pbcopy='xclip -selection clipboard'
+alias pbpaste='xclip -selection clipboard -o'
+{{- end }}
+
+# ======================================================
+# ==================== FUNCTIONS ======================
+# ======================================================
+
+# Quick environment info function
+env-info() {
+    echo "🔧 Current Environment Information"
+    echo "================================="
+    echo "Hostname: {{ .hostname }}"
+    echo "OS: {{ .os }}"
+    echo "Working Directory: $(pwd)"
+    echo "Shell: $SHELL"
+    echo "Editor: $EDITOR"
+    echo "Git User: $(git config user.name 2>/dev/null || echo 'Not configured')"
+}
+
+# Initialize zoxide (smart cd)
+if command -v zoxide &> /dev/null; then
+    eval "$(zoxide init zsh)"
+fi
+
+# Docker log viewer with container selection
+docker-logs() {
+    if [[ $# -eq 0 ]]; then
+        local container=$(docker ps --format "table {{.Names}}\t{{.Status}}" | fzf --header-lines=1 | awk '{print $1}')
+        if [[ -n "$container" ]]; then
+            docker logs -f "$container"
+        fi
+    else
+        docker logs -f "$1"
+    fi
+}
+
+# Git status for multiple repositories
+git-status-all() {
+    local base_dir="${1:-.}"
+    echo "🔍 Checking git status in all subdirectories of $base_dir"
+    for dir in "$base_dir"/*; do
+        if [[ -d "$dir/.git" ]]; then
+            echo ""
+            echo "📁 $(basename "$dir"):"
+            (cd "$dir" && git status --porcelain | head -10)
+        fi
+    done
+}
+
+# Quick backup function for dotfiles
+backup-dotfiles() {
+    local backup_dir="$HOME/dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
+    echo "📦 Creating dotfiles backup in $backup_dir"
+    mkdir -p "$backup_dir"
+    
+    local files=(".zshrc" ".vimrc" ".gitconfig")
+    for file in "${files[@]}"; do
+        if [[ -f "$HOME/$file" ]]; then
+            cp "$HOME/$file" "$backup_dir/"
+            echo "✅ Backed up $file"
+        fi
+    done
+    
+    if [[ -d "$HOME/.config/nvim" ]]; then
+        cp -r "$HOME/.config/nvim" "$backup_dir/"
+        echo "✅ Backed up nvim config"
+    fi
+    
+    echo "🎉 Backup complete: $backup_dir"
+}
+
+# =============================================================================
+# USER CUSTOMIZATIONS - Add your personal settings below this line
+# =============================================================================
+# Personal aliases, functions, and environment variables go here
+# This section will not be overwritten by chezmoi updates

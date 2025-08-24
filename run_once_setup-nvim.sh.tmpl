@@ -1,0 +1,25 @@
+#!/bin/bash
+set -e
+
+echo "Setting up Neovim configuration..."
+
+# LazyVim will handle most of the setup automatically on first launch
+# This script just ensures we have the basic structure
+
+# Create nvim config directories if they don't exist
+mkdir -p "$HOME/.config/nvim/lua/config"
+mkdir -p "$HOME/.config/nvim/lua/plugins"
+
+# Set nvim as the default editor if available
+if command -v nvim &> /dev/null; then
+    echo "Neovim is available and configured"
+    
+    # Optional: Run a quick health check (in background to not block)
+    # This will trigger the initial plugin installation
+    echo "LazyVim will automatically install plugins on first launch"
+else
+    echo "⚠️  Neovim not found - using vim as fallback"
+fi
+
+echo "✅ Neovim setup complete!"
+echo "Open 'nvim' to let LazyVim automatically install plugins"

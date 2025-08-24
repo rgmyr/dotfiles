@@ -1,4 +1,4 @@
-# `@rgmyr.files`
+# `rgmyr.files`
 
 Cross-platform dotfile setup for macOS and Debian-based systems, managed with [chezmoi](https://chezmoi.io). Intending to add Windows support to the extent possible, or at least verify Debain setup works in WSL.
 

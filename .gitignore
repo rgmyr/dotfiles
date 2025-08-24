@@ -1,2 +1,19 @@
+# State files
 .chezmoi.toml
+.chezmoitemplates/
 chezmoistate.boltdb
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.cursor/
+.idea/
+*.swp
+*.swo
+
+# Temp files
+*.tmp
+*.temp

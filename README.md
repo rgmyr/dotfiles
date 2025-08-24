@@ -8,8 +8,8 @@ Chezmoi is a dotfile manager that uses templates to automatically adapt your con
 
 ## Priorities
 
-- **Modern CLI tools** that replace traditional Unix commands
-- **`vim`-centric workflows** with VSCode compatibility
+- **Modern CLI tools** that improve on traditional Unix commands
+- **`vim`-centric workflows** with VSCode keybinding compatibility
 - **Terminal multiplexing** with `tmux`
 - **AI-assisted development** (tbd, interested in `supermaven`, `cursor-cli`, `aider`, `avante.nvim`)
 
@@ -118,7 +118,11 @@ Shift+Tab           # Jump out of brackets/quotes (insert mode)
 
 ### 🖥️ tmux (Terminal Multiplexer)
 
-Think of `tmux` as having multiple desktops for different projects.
+Think of `tmux` as having multiple terminal-based desktop configurations for different projects or tasks.
+
+The `tmux server` is a local process that can manage multiple ongoing terminal sessions, each with multiple windows (tab-like), each having one or more panes arranged in an arbitrary grid.
+
+Sessions and windows can be peristently named, and the panes can be quickly split and resized.
 
 #### Session Management
 ```bash
@@ -152,7 +156,7 @@ Ctrl+a |                  # Split vertically (custom binding)
 Ctrl+a -                  # Split horizontally (custom binding)
 Ctrl+a h/j/k/l            # Navigate panes (vim-style)
 Ctrl+a H/J/K/L            # Resize panes
-Ctrl+a z                  # Zoom/unzoom current pane (GAME CHANGER!)
+Ctrl+a z                  # Zoom/unzoom current pane
 Ctrl+a x                  # Kill current pane
 Ctrl+a Space              # Cycle through pane layouts
 ```

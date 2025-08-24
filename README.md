@@ -1,6 +1,6 @@
 # `rgmyr's` Dotfiles
 
-Cross-platform dotfile setup for macOS and Debian-based systems, managed with [chezmoi](https://chezmoi.io). Intending to add Windows support to the extent possible.
+Cross-platform dotfile setup for macOS and Debian-based systems, managed with [chezmoi](https://chezmoi.io). Intending to add Windows support to the extent possible, or at least WSL.
 
 ## How Chezmoi Works
 
@@ -39,7 +39,7 @@ tmux new -s work
 
 ### Core Applications
 - **[Zsh](https://www.zsh.org/)** + [Oh-my-zsh](https://ohmyz.sh/) (modern shell with themes and plugins)
-- **[Neovim](https://neovim.io/)** with [LazyVim](https://www.lazyvim.org/)
+- **[Neovim](https://neovim.io/)** with [LazyVim](https://www.lazyvim.org/) (LazyVim temporarily disabled until I can get automatic setup working without creating `lspserver` or `globalleader` issues)
 - **[tmux](https://github.com/tmux/tmux/wiki)** (terminal multiplexer)
 - **[fzf](https://junegunn.github.io/fzf/)** (fuzzy finder for everything)
 
@@ -118,11 +118,15 @@ Shift+Tab           # Jump out of brackets/quotes (insert mode)
 
 ### 🖥️ tmux (Terminal Multiplexer)
 
-Think of `tmux` as having multiple terminal-based desktop configurations for different projects or tasks.
+Think of `tmux` as having different nested groups of shell sessions for different projects or tasks.
 
-The `tmux server` is a local process that can manage multiple ongoing terminal sessions, each with multiple windows (tab-like), each having one or more panes arranged in an arbitrary grid.
+The `tmux server` is a local process that manages:
 
-Sessions and windows can be peristently named, and the panes can be quickly split and resized.
+- multiple ongoing terminal sessions (like an instance of a terminal emulator)
+- each with multiple windows (like tabs within a session)
+- each having one or more panes arranged in an arbitrary grid
+- sessions and windows can be named
+- panes can be quickly split and resized
 
 #### Session Management
 ```bash

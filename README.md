@@ -1,21 +1,47 @@
 # `rgmyr.files`
 
-Cross-platform dotfile setup for macOS and Debian-based systems, managed with [chezmoi](https://chezmoi.io). Intending to add Windows support to the extent possible, or at least verify Debain setup works in WSL.
+My cross-platform setup and configuration system for macOS and Debian-based systems, managed with [chezmoi](https://chezmoi.io). Intend to add Windows support, at least in the WSL environment.
 
 ## How Chezmoi Works
 
-Chezmoi is a dotfile manager that uses templates to adapt configurations for different machines. It detects OS, architecture, and environment, then generates the right paths and settings. For example, we automatically use `/opt/homebrew` on Apple Silicon Macs and `/usr/local` on Intel Macs or when running under Rosetta 2.
+Chezmoi is a dotfile manager that uses templates to adapt configuration files and one-time installation scripts. It detects OS, architecture, and environment, so that you can use appropriate versions of commands, paths, and settings on (potentially) any machine. For example, this repository automatically uses `/opt/homebrew` on Apple Silicon Macs and `/usr/local` on Intel Macs or when running under Rosetta 2.
 
-## Priorities
+## My Idea of a Good Time
 
-- **Modern CLI tools** that improve on traditional Unix commands
-- **`vim`-centric workflows** with VSCode keybinding compatibility
-- **Terminal multiplexing** with `tmux`
-- **AI-assisted development** (tbd, interested in `supermaven`, `cursor-cli`, `aider`, `avante.nvim`)
+- **Modern CLI tools** that offer improved versions of traditional Unix commands
+    - `exa, bat, ripgrep, fzf, zoxide, yazi` etc.
+    - Only aliasing certain commands like `ls/ll -> exa` to always use the improved version
+    - Leaving basic `cat` and `grep` accessible
+- **[Neovim](https://neovim.io/)** with [LazyVim](https://www.lazyvim.org/) for managing plugins, keymaps, and options
+    - `jj` to escape from insert mode, `;` to enter command mode 
+- **Terminal multiplexing** with [tmux](https://github.com/tmux/tmux/wiki)
+    - `Ctrl+a` instead of `Ctrl+b` to enter tmux mode
+    - `\` and `-` to split panes (v/h), rather than `%` and `"`
+    - `vim`-style keybindings for pane navigation and resizing
+- **AI-assisted development** (tbd, interested in `supermaven`, `cursor-cli`, `gemini-cli`, `aider`, `avante.nvim`)
+    - [supermaven](https://github.com/supermaven-ai/supermaven) for fast AI completion in Neovim
+    - TBD on agents: `cursor-cli`, `aider`, `gemini-cli`
+- **[Base16](https://github.com/RRethy/nvim-base16)** for consistent colors across terminals and easy switching
+    - `theme rgmyr`: my default custom theme, similar to solarized dark but a little easier on the eyes
+    - `theme solarized`: `base16-solarized-light`
+    - `theme github`: `base16-github-dark-dimmed`
+    - Many other themes available, see [the project repo](https://github.com/RRethy/nvim-base16).
+    - This should be transferrable to LazyVim, but it's induced some strange issues so we just stick with
 
 ## Installation
 
-### One-Liner
+**NOTE**: This does currently assume that you've installed basic build tools already. If not, you can install them with the following commands:
+
+```bash
+# macOS
+brew install build-essential
+
+# Debian-based systems
+sudo apt-get update
+sudo apt-get install build-essential
+```
+
+### One-Liner Installation
 ```bash
 sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply rgmyr
 ```
@@ -28,7 +54,7 @@ brew install chezmoi  # macOS
 curl -sfL https://git.io/chezmoi | sh && sudo mv ./bin/chezmoi /usr/local/bin/  # Linux
 
 # Initialize with this repository
-chezmoi init --apply https://github.com/rgmyr/dotfiles.git
+chezmoi init --apply rgmyr
 
 # Start using the configuration
 exec zsh
@@ -42,8 +68,6 @@ tmux new -s work
 - **[Neovim](https://neovim.io/)** with [LazyVim](https://www.lazyvim.org/)
 - **[tmux](https://github.com/tmux/tmux/wiki)** terminal multiplexer
 - **[fzf](https://junegunn.github.io/fzf/)** (fuzzy finder for everything)
-
-**LazyVim is temporarily disabled until I can get the automatic setup working without creating `lspserver` or `globalleader` issues.**
 
 ### Modern CLI Tools (Rust-powered)
 | Traditional | Modern | Purpose |

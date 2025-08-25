@@ -1,50 +1,28 @@
--- Set leader key to backslash
-vim.g.mapleader = "\\"
-vim.g.maplocalleader = "\\"
+-- Essential custom keymaps (LazyVim provides most defaults)
 
--- Basic Neovim settings
-vim.opt.number = true
-vim.opt.relativenumber = true
-vim.opt.mouse = 'a'
-vim.opt.ignorecase = true
-vim.opt.smartcase = true
-vim.opt.hlsearch = true
-vim.opt.incsearch = true
-vim.opt.wrap = false
-vim.opt.tabstop = 2
-vim.opt.shiftwidth = 2
-vim.opt.expandtab = true
-vim.opt.autoindent = true
-
--- Map jj to <Esc> in insert mode
+-- My favorite keymaps
 vim.keymap.set("i", "jj", "<Esc>", { noremap = true, silent = true })
-
--- Map ; to : in normal mode
 vim.keymap.set("n", ";", ":", { noremap = true })
-
--- Make 'd' delete without yanking (true delete)
+-- Delete without yanking
 vim.keymap.set({ "n", "v" }, "d", '"_d', { desc = "Delete without yank" })
 vim.keymap.set({ "n", "v" }, "D", '"_D', { desc = "Delete line without yank" })
 
--- Edit config with chezmoi
-vim.keymap.set(
-	"n",
-	"<leader>rc",
-	"<cmd>!chezmoi edit ~/.config/nvim/lua/config/keymaps.lua<cr>",
-	{ desc = "Edit keymaps" }
-)
+-- Chezmoi config editing
+vim.keymap.set("n", "<leader>rc", "<cmd>!chezmoi edit ~/.config/nvim/lua/config/keymaps.lua<cr>", { desc = "Edit keymaps" })
 
--- VSCode-like keybindings for better compatibility
-vim.keymap.set("n", "<C-s>", "<cmd>w<cr>", { desc = "Save file" })
-vim.keymap.set("n", "<C-/>", "gcc", { desc = "Toggle comment", remap = true })
-vim.keymap.set("v", "<C-/>", "gc", { desc = "Toggle comment", remap = true })
-vim.keymap.set("n", "<C-d>", "<C-d>zz", { desc = "Scroll down and center" })
-vim.keymap.set("n", "<C-u>", "<C-u>zz", { desc = "Scroll up and center" })
+-- Supermaven AI assistant (works automatically with inline completion)
+-- Default keymaps: <Tab> to accept, <C-]> to clear, <C-j> to accept word
 
--- Telescope keymaps
-vim.keymap.set("n", "<C-p>", "<cmd>Telescope find_files<cr>", { desc = "Find Files" })
-vim.keymap.set("n", "<C-S-p>", "<cmd>Telescope commands<cr>", { desc = "Commands" })
-vim.keymap.set("n", "<C-S-f>", "<cmd>Telescope live_grep<cr>", { desc = "Live Grep" })
+-- Default Dark Themes
+vim.keymap.set("n", "<leader>tt", "<cmd>set background=dark<cr><cmd>colorscheme tokyonight<cr>", { desc = "Theme: Tokyo Night" })
+vim.keymap.set("n", "<leader>tc", "<cmd>set background=dark<cr><cmd>colorscheme catppuccin<cr>", { desc = "Theme: Catppuccin" })
+vim.keymap.set("n", "<leader>tr", "<cmd>set background=dark<cr><cmd>colorscheme rose-pine<cr>", { desc = "Theme: Rose Pine" })
+vim.keymap.set("n", "<leader>tb", "<cmd>set background=dark<cr><cmd>colorscheme gruvbox<cr>", { desc = "Theme: Gruvbox" })
+vim.keymap.set("n", "<leader>tg", "<cmd>set background=dark<cr><cmd>colorscheme github_dark_dimmed<cr>", { desc = "Theme: GitHub Dark Dimmed" })
 
--- File explorer
-vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<cr>", { desc = "Toggle file explorer" })
+-- Default Light Themes
+vim.keymap.set("n", "<leader>ts", "<cmd>set background=light<cr><cmd>colorscheme solarized<cr>", { desc = "Theme: Solarized Light" })
+
+-- Light/Dark mode toggle
+vim.keymap.set("n", "<leader>tl", "<cmd>set background=light<cr>", { desc = "Toggle: Light mode" })
+vim.keymap.set("n", "<leader>tdk", "<cmd>set background=dark<cr>", { desc = "Toggle: Dark mode" })

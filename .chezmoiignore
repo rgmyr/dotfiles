@@ -1,2 +1,75 @@
+# Documentation files
+docs/
 *.md
+*.txt
+*.rst
+README*
+
+# Scripts and installers
 install.sh
+setup-*.sh
+run_once_*.sh
+
+# Chezmoi internal files
+chezmoistate.blotdb
+.chezmoi.toml
+.chezmoi.yaml
+.chezmoi.json
+
+# Temporary and cache files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+logs/
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# IDE and editor files
+.vscode/
+.idea/
+*.sublime-*
+.atom/
+
+# Build and dependency directories
+node_modules/
+vendor/
+dist/
+build/
+target/
+
+# Git metadata (usually not needed)
+.git/
+.gitignore
+
+# Personal notes and todos
+TODO*
+NOTES*
+*.todo
+
+# Configuration files that might conflict
+.env
+.env.local
+.env.*.local
+
+# Package manager files
+package-lock.json
+yarn.lock
+Gemfile.lock
+
+# OS-specific files
+.DS_Store
+.fseventsd
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini

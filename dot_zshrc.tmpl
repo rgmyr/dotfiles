@@ -77,26 +77,8 @@ source $ZSH/oh-my-zsh.sh
 # ======================================================
 
 # Enable fzf keybindings and fuzzy auto-completion
-{{- if eq .chezmoi.os "darwin" }}
 source {{ .fzf_path }}/key-bindings.zsh
 source {{ .fzf_path }}/completion.zsh
-{{- else }}
-source {{ .fzf_path }}/key-bindings.zsh
-source {{ .fzf_path }}/completion.zsh
-{{- end }}
-
-# Set "Github Dark" colors for fzf widgets
-FZF_DEFAULT_OPTS=""
-FZF_DEFAULT_OPTS+="--height 40% "
-FZF_DEFAULT_OPTS+="--layout=reverse "
-FZF_DEFAULT_OPTS+="--border "
-FZF_DEFAULT_OPTS+="--color="
-FZF_DEFAULT_OPTS+="fg:#c9d1d9,bg:#1c2128,hl:#58a6ff,"
-FZF_DEFAULT_OPTS+="fg+:#d0d7de,bg+:#22272e,hl+:#79c0ff,"
-FZF_DEFAULT_OPTS+="info:#8b949e,prompt:#58a6ff,pointer:#79c0ff,"
-FZF_DEFAULT_OPTS+="marker:#f85149,spinner:#58a6ff,header:#58a6ff"
-FZF_DEFAULT_OPTS+=" "
-export FZF_DEFAULT_OPTS
 
 # ======================================================
 # ===================== ALIASES ========================
@@ -121,6 +103,9 @@ alias cd='z'  # zoxide smart cd
 
 # Explicit tmux conf path
 alias tmux='tmux -f ~/.tmux.conf'
+
+# Clean vim configuration
+alias clean-nvim='rm -rf ~/.local/share/nvim ~/.local/state/nvim ~/.cache/nvim ~/.config/nvim'
 
 # File management
 alias files='yazi'
@@ -291,6 +276,52 @@ BASE16_SHELL="$HOME/.config/base16-shell/"
     [ -s "$BASE16_SHELL/profile_helper.sh" ] && \
         source "$BASE16_SHELL/profile_helper.sh"
 
+# Dynamic FZF colors that match base16 theme
+setup_fzf_colors() {
+    # Base layout options (theme-independent)
+    local base_opts="--height 40% --layout=reverse --border"
+    
+    # Colors based on current base16 theme
+    if [[ -n "$BASE16_THEME" ]]; then
+        # Use base16 colors if available
+        local fzf_colors=""
+        case "$BASE16_THEME" in
+            *"light"*|*"solarized"*)
+                # Light theme colors
+                fzf_colors="--color=fg:#586e75,bg:#fdf6e3,hl:#268bd2"
+                fzf_colors+=",fg+:#073642,bg+:#eee8d5,hl+:#2aa198"
+                fzf_colors+=",info:#839496,prompt:#268bd2,pointer:#dc322f"
+                fzf_colors+=",marker:#859900,spinner:#268bd2,header:#6c71c4"
+                ;;
+            *"github"*)
+                # GitHub dark dimmed colors
+                fzf_colors="--color=fg:#adbac7,bg:#22272e,hl:#539bf5"
+                fzf_colors+=",fg+:#cdd9e5,bg+:#2d333b,hl+:#39c5cf"
+                fzf_colors+=",info:#636e7b,prompt:#539bf5,pointer:#f47067"
+                fzf_colors+=",marker:#57ab5a,spinner:#539bf5,header:#b083f0"
+                ;;
+            *"rgmyr"*)
+                # Custom theme colors
+                fzf_colors="--color=fg:#9cc2c3,bg:#002831,hl:#2176c7"
+                fzf_colors+=",fg+:#b5d5d3,bg+:#003748,hl+:#259286"
+                fzf_colors+=",info:#006488,prompt:#2176c7,pointer:#d11c24"
+                fzf_colors+=",marker:#6cbe6c,spinner:#2176c7,header:#c61c6f"
+                ;;
+            *)
+                # Default dark theme fallback
+                fzf_colors="--color=fg:#c9d1d9,bg:#1c2128,hl:#58a6ff"
+                fzf_colors+=",fg+:#d0d7de,bg+:#22272e,hl+:#79c0ff"
+                fzf_colors+=",info:#8b949e,prompt:#58a6ff,pointer:#79c0ff"
+                fzf_colors+=",marker:#f85149,spinner:#58a6ff,header:#58a6ff"
+                ;;
+        esac
+        export FZF_DEFAULT_OPTS="$base_opts $fzf_colors"
+    else
+        # Fallback if no base16 theme is set
+        export FZF_DEFAULT_OPTS="$base_opts --color=dark"
+    fi
+}
+
 # Theme switcher function
 theme() {
     case "$1" in
@@ -319,9 +350,9 @@ theme() {
             ;;
     esac
     
-    # Reload fzf colors if using fzf
+    # Update FZF colors to match theme
     if command -v fzf >/dev/null 2>&1; then
-        source ~/.config/fzf/fzf-base16.sh 2>/dev/null || true
+        setup_fzf_colors
     fi
 }
 
@@ -329,6 +360,9 @@ theme() {
 if [ -n "$ZSH_VERSION" ]; then
     compdef '_values "themes" "rgmyr[Custom dark theme]" "solarized[Solarized light]" "github[GitHub dark]" "list[Show available themes]"' theme
 fi
+
+# Set up FZF colors on shell startup
+setup_fzf_colors
 
 # Set default theme
 theme rgmyr

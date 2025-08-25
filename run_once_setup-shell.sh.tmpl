@@ -6,7 +6,16 @@ echo "🐚 Setting up Zsh and Oh-my-zsh..."
 # Install Oh-my-zsh if not present
 if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
     echo "📦 Installing Oh-my-zsh..."
-    sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    # Use a more reliable installation method
+    RUNZSH=no CHSH=no sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    
+    # Verify installation
+    if [[ -d "$HOME/.oh-my-zsh" ]]; then
+        echo "✅ Oh-my-zsh installed successfully"
+    else
+        echo "❌ Oh-my-zsh installation failed"
+        exit 1
+    fi
 else
     echo "✅ Oh-my-zsh already installed"
 fi
@@ -54,4 +63,19 @@ echo "✅ fzf integration configured via package manager"
 {{- end }}
 
 echo "✅ Shell setup complete!"
+
+# Final verification
+if [[ -f "$HOME/.zshrc" ]]; then
+    echo "✅ .zshrc file found"
+else
+    echo "❌ .zshrc file not found - this may cause issues"
+fi
+
+if [[ -d "$HOME/.oh-my-zsh" ]]; then
+    echo "✅ Oh-my-zsh directory confirmed"
+else
+    echo "❌ Oh-my-zsh directory missing - installation may have failed"
+fi
+
 echo "💡 Run 'exec zsh' to start using your new configuration"
+echo "💡 If you still get errors, try: source ~/.zshrc"

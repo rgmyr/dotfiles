@@ -281,6 +281,58 @@ uv-project() {
     echo "🚀 Ready to develop! Use 'uv add <package>' to add dependencies"
 }
 
+# ======================================================
+# ==================== BASE16 THEMING ==================
+# ======================================================
+
+# Base16 Shell
+BASE16_SHELL="$HOME/.config/base16-shell/"
+[ -n "$PS1" ] && \
+    [ -s "$BASE16_SHELL/profile_helper.sh" ] && \
+        source "$BASE16_SHELL/profile_helper.sh"
+
+# Theme switcher function
+theme() {
+    case "$1" in
+        "rgmyr"|"custom")
+            # Your custom theme
+            source "$BASE16_SHELL/scripts/base16-rgmyr-dark.sh"
+            echo "🎨 Switched to rgmyr-dark theme"
+            ;;
+        "solarized"|"sol")
+            source "$BASE16_SHELL/scripts/base16-solarized-light.sh"
+            echo "☀️  Switched to solarized-light theme"
+            ;;
+        "github"|"gh")
+            source "$BASE16_SHELL/scripts/base16-github-dark-dimmed.sh"
+            echo "🐙 Switched to github-dark-dimmed theme"
+            ;;
+        "list"|"ls")
+            echo "Available themes:"
+            echo "  theme rgmyr      - Your custom dark theme"
+            echo "  theme solarized  - Solarized light"
+            echo "  theme github     - GitHub dark dimmed"
+            ;;
+        *)
+            echo "Usage: theme [rgmyr|solarized|github|list]"
+            echo "Current theme: $BASE16_THEME"
+            ;;
+    esac
+    
+    # Reload fzf colors if using fzf
+    if command -v fzf >/dev/null 2>&1; then
+        source ~/.config/fzf/fzf-base16.sh 2>/dev/null || true
+    fi
+}
+
+# Auto-completion for zsh
+if [ -n "$ZSH_VERSION" ]; then
+    compdef '_values "themes" "rgmyr[Custom dark theme]" "solarized[Solarized light]" "github[GitHub dark]" "list[Show available themes]"' theme
+fi
+
+# Set default theme
+theme rgmyr
+
 # =============================================================================
 # USER CUSTOMIZATIONS - Add your personal settings below this line
 # =============================================================================

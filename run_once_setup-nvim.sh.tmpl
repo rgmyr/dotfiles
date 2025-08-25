@@ -1,25 +1,62 @@
 #!/bin/bash
 set -e
 
-echo "Setting up Neovim configuration..."
+echo "📝 Setting up Neovim configuration..."
 
-# LazyVim will handle most of the setup automatically on first launch
-# This script just ensures we have the basic structure
+# Check Neovim version compatibility with lazy.nvim
+if command -v nvim &> /dev/null; then
+    nvim_version=$(nvim --version | head -n1)
+    echo "Found Neovim: $nvim_version"
+    
+    # Check if version is 0.8+ (required for lazy.nvim)
+    if nvim --version | grep -q "NVIM v0\.[89]\|NVIM v[1-9]"; then
+        echo "✅ Neovim version is compatible with lazy.nvim"
+    else
+        echo "❌ Neovim version is too old for lazy.nvim (requires 0.8+)"
+        echo "Please run the package installation script first:"
+        echo "  chezmoi apply --force"
+        echo "Or manually install Neovim 0.8+:"
+        echo "  sudo add-apt-repository ppa:neovim-ppa/stable -y"
+        echo "  sudo apt update && sudo apt install neovim"
+        exit 1
+    fi
+else
+    echo "❌ Neovim not found"
+    echo "Please run the package installation script first:"
+    echo "  chezmoi apply --force"
+    exit 1
+fi
 
 # Create nvim config directories if they don't exist
 mkdir -p "$HOME/.config/nvim/lua/config"
 mkdir -p "$HOME/.config/nvim/lua/plugins"
 
+# Verify the config files exist
+if [[ -f "$HOME/.config/nvim/init.lua" ]]; then
+    echo "✅ Neovim config found at ~/.config/nvim/init.lua"
+else
+    echo "⚠️  Neovim config not found - this should be handled by chezmoi"
+fi
+
 # Set nvim as the default editor if available
 if command -v nvim &> /dev/null; then
-    echo "Neovim is available and configured"
+    echo "✅ Neovim is available and configured"
+    
+    # Check if lazy.nvim is properly configured
+    if [[ -f "$HOME/.config/nvim/lua/plugins/lazy.lua" ]]; then
+        echo "✅ lazy.nvim configuration found"
+    else
+        echo "⚠️  lazy.nvim configuration not found - check your chezmoi setup"
+    fi
     
     # Optional: Run a quick health check (in background to not block)
-    # This will trigger the initial plugin installation
-    echo "LazyVim will automatically install plugins on first launch"
+    echo "💡 LazyVim will automatically install plugins on first launch"
+    echo "💡 First launch may take a few minutes as plugins download"
 else
-    echo "⚠️  Neovim not found - using vim as fallback"
+    echo "❌ Neovim not found - using vim as fallback"
 fi
 
 echo "✅ Neovim setup complete!"
-echo "Open 'nvim' to let LazyVim automatically install plugins"
+echo "💡 Open 'nvim' to let LazyVim automatically install plugins"
+echo "💡 If you get errors, ensure Neovim 0.8+ is installed and run:"
+echo "   chezmoi apply --force"

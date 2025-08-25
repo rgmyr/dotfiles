@@ -3,6 +3,29 @@ set -e
 
 echo "🐚 Setting up Zsh and Oh-my-zsh..."
 
+# Check if we're running in WSL
+if [[ -n "$WSL_DISTRO_NAME" ]]; then
+    echo "🚀 Detected WSL environment: $WSL_DISTRO_NAME"
+    echo "🔧 Applying WSL-specific shell fixes..."
+    
+    # Ensure zsh completions directory exists and has proper permissions
+    sudo mkdir -p /usr/share/zsh/vendor-completions
+    sudo chmod 755 /usr/share/zsh/vendor-completions
+    
+    # Fix potential completion file issues
+    if [[ -f /usr/share/zsh/vendor-completions/_docker ]] && [[ ! -s /usr/share/zsh/vendor-completions/_docker ]]; then
+        echo "🔧 Fixing empty Docker completion file..."
+        sudo rm -f /usr/share/zsh/vendor-completions/_docker
+    fi
+    
+    # Install Docker completions if Docker is available
+    if command -v docker &> /dev/null; then
+        echo "🐳 Installing Docker zsh completions..."
+        sudo curl -L https://raw.githubusercontent.com/docker/cli/master/contrib/completion/zsh/_docker -o /usr/share/zsh/vendor-completions/_docker
+        sudo chmod 644 /usr/share/zsh/vendor-completions/_docker
+    fi
+fi
+
 # Install Oh-my-zsh if not present
 if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
     echo "📦 Installing Oh-my-zsh..."
@@ -24,9 +47,58 @@ fi
 ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
 if [[ ! -d "$ZSH_CUSTOM/plugins/zsh-history-substring-search" ]]; then
     echo "📦 Installing zsh-history-substring-search plugin..."
-    git clone https://github.com/zsh-users/zsh-history-substring-search "$ZSH_CUSTOM/plugins/zsh-history-substring-search"
+    
+    # Ensure the plugins directory exists
+    mkdir -p "$ZSH_CUSTOM/plugins"
+    
+    # Try to clone the plugin with better error handling
+    if git clone https://github.com/zsh-users/zsh-history-substring-search "$ZSH_CUSTOM/plugins/zsh-history-substring-search" 2>/dev/null; then
+        echo "✅ zsh-history-substring-search plugin installed successfully"
+    else
+        echo "⚠️  Git clone failed, trying alternative methods..."
+        
+        # Try with git protocol fallback
+        if git clone git://github.com/zsh-users/zsh-history-substring-search.git "$ZSH_CUSTOM/plugins/zsh-history-substring-search" 2>/dev/null; then
+            echo "✅ zsh-history-substring-search plugin installed via git protocol"
+        else
+            echo "❌ Git clone failed. This might be a network/WSL issue."
+            echo "💡 Trying to download as zip file..."
+            
+            # Fallback to zip download
+            if command -v curl &> /dev/null; then
+                cd "$ZSH_CUSTOM/plugins"
+                if curl -L -o zsh-history-substring-search.zip https://github.com/zsh-users/zsh-history-substring-search/archive/refs/heads/master.zip; then
+                    unzip -q zsh-history-substring-search.zip
+                    mv zsh-history-substring-search-master zsh-history-substring-search
+                    rm zsh-history-substring-search.zip
+                    echo "✅ zsh-history-substring-search plugin installed via zip download"
+                else
+                    echo "❌ Zip download also failed. Manual installation required:"
+                    echo "   cd $ZSH_CUSTOM/plugins"
+                    echo "   git clone https://github.com/zsh-users/zsh-history-substring-search"
+                fi
+            else
+                echo "❌ Neither git nor curl available. Manual installation required:"
+                echo "   cd $ZSH_CUSTOM/plugins"
+                echo "   git clone https://github.com/zsh-users/zsh-history-substring-search"
+            fi
+        fi
+    fi
 else
     echo "✅ zsh-history-substring-search already installed"
+fi
+
+# Verify the plugin installation
+if [[ -d "$ZSH_CUSTOM/plugins/zsh-history-substring-search" ]]; then
+    if [[ -f "$ZSH_CUSTOM/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh" ]]; then
+        echo "✅ Plugin files verified"
+    else
+        echo "⚠️  Plugin directory exists but main file missing - removing and retrying..."
+        rm -rf "$ZSH_CUSTOM/plugins/zsh-history-substring-search"
+        echo "Please run this script again to reinstall the plugin"
+    fi
+else
+    echo "❌ Plugin installation failed - check network connectivity and try again"
 fi
 
 # Set zsh as default shell if not already
@@ -62,6 +134,40 @@ fi
 echo "✅ fzf integration configured via package manager"
 {{- end }}
 
+# WSL-specific zsh completion fixes
+if [[ -n "$WSL_DISTRO_NAME" ]]; then
+    echo "🔧 Setting up WSL-specific zsh completions..."
+    
+    # Create a safe compinit configuration that won't fail on missing files
+    if [[ ! -f "$HOME/.zshrc.local" ]]; then
+        cat > "$HOME/.zshrc.local" << 'EOF'
+# WSL-specific zsh completions fix
+# This prevents compinit errors from missing completion files
+
+# Safe compinit function
+safe_compinit() {
+    # Only load completions if the directory exists and has files
+    if [[ -d /usr/share/zsh/vendor-completions ]] && [[ -n "$(ls -A /usr/share/zsh/vendor-completions 2>/dev/null)" ]]; then
+        compinit
+    else
+        compinit -i  # Ignore insecure files
+    fi
+}
+
+# Override compinit with safe version
+autoload -Uz safe_compinit
+safe_compinit
+EOF
+        echo "✅ Created safe compinit configuration"
+    fi
+    
+    # Ensure .zshrc loads the local config
+    if [[ -f "$HOME/.zshrc" ]] && ! grep -q "source.*zshrc.local" "$HOME/.zshrc"; then
+        echo "source ~/.zshrc.local" >> "$HOME/.zshrc"
+        echo "✅ Added local zshrc to main .zshrc"
+    fi
+fi
+
 echo "✅ Shell setup complete!"
 
 # Final verification
@@ -77,5 +183,25 @@ else
     echo "❌ Oh-my-zsh directory missing - installation may have failed"
 fi
 
+# WSL-specific final checks
+if [[ -n "$WSL_DISTRO_NAME" ]]; then
+    echo "🔍 WSL-specific verification..."
+    
+    if [[ -d /usr/share/zsh/vendor-completions ]]; then
+        echo "✅ Zsh completions directory exists"
+        completion_count=$(ls -1 /usr/share/zsh/vendor-completions/* 2>/dev/null | wc -l)
+        echo "   Found $completion_count completion files"
+    else
+        echo "❌ Zsh completions directory missing"
+    fi
+    
+    if [[ -f "$HOME/.zshrc.local" ]]; then
+        echo "✅ Safe compinit configuration created"
+    else
+        echo "❌ Safe compinit configuration missing"
+    fi
+fi
+
 echo "💡 Run 'exec zsh' to start using your new configuration"
 echo "💡 If you still get errors, try: source ~/.zshrc"
+echo "💡 For WSL users: The safe compinit config should prevent completion errors"

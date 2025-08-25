@@ -108,18 +108,50 @@ fi
 # Debian/Ubuntu package installation
 echo "🐧 Installing packages for Debian/Ubuntu..."
 
+# Check if we're running in WSL
+if [[ -n "$WSL_DISTRO_NAME" ]]; then
+    echo "🚀 Detected WSL environment: $WSL_DISTRO_NAME"
+fi
+
 # Update package list
 sudo apt update
 
-# Install uv first (Python package manager)
-if ! command -v uv &> /dev/null; then
-    echo "🐍 Installing uv (Python package manager)..."
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-    # Add uv to PATH for current session
+# Install Rust and Cargo first (required for many tools)
+if ! command -v cargo &> /dev/null; then
+    echo "🦀 Installing Rust and Cargo..."
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    source ~/.cargo/env
+    
+    # Add cargo to PATH for current session and future sessions
     export PATH="$HOME/.cargo/bin:$PATH"
-    # Also add to shell profile for future sessions
     if ! grep -q "export PATH.*cargo/bin" ~/.zprofile; then
         echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.zprofile
+    fi
+    if ! grep -q "export PATH.*cargo/bin" ~/.bashrc; then
+        echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.bashrc
+    fi
+    echo "✅ Rust and Cargo installed successfully"
+else
+    echo "✅ Rust and Cargo already installed"
+    # Ensure cargo is in PATH
+    export PATH="$HOME/.cargo/bin:$PATH"
+fi
+
+# Install uv (Python package manager) via cargo
+if ! command -v uv &> /dev/null; then
+    echo "🐍 Installing uv (Python package manager)..."
+    if command -v cargo &> /dev/null; then
+        cargo install uv
+        # Add uv to PATH for current session
+        export PATH="$HOME/.cargo/bin:$PATH"
+        # Also add to shell profile for future sessions
+        if ! grep -q "export PATH.*cargo/bin" ~/.zprofile; then
+            echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.zprofile
+        fi
+    else
+        echo "⚠️  Cargo not available, falling back to curl installation..."
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        export PATH="$HOME/.cargo/bin:$PATH"
     fi
 else
     echo "✅ uv already installed"
@@ -143,7 +175,39 @@ else
     echo "✅ Python already available"
 fi
 
-# Install essential packages (excluding Python since we handle it above)
+# Install newer Neovim (0.8+) for lazy.nvim compatibility
+if ! command -v nvim &> /dev/null || ! nvim --version | grep -q "NVIM v0\.[89]\|NVIM v[1-9]"; then
+    echo "📝 Installing newer Neovim (0.8+) for lazy.nvim compatibility..."
+    
+    # Remove old version if present
+    if command -v nvim &> /dev/null; then
+        echo "Removing old Neovim version..."
+        sudo apt remove -y neovim
+    fi
+    
+    # Add Neovim PPA for latest stable version
+    if ! grep -q "neovim-ppa" /etc/apt/sources.list.d/*; then
+        echo "Adding Neovim PPA..."
+        sudo add-apt-repository ppa:neovim-ppa/stable -y
+        sudo apt update
+    fi
+    
+    # Install Neovim
+    sudo apt install -y neovim
+    
+    # Verify version
+    if command -v nvim &> /dev/null; then
+        nvim_version=$(nvim --version | head -n1)
+        echo "✅ Neovim installed: $nvim_version"
+    else
+        echo "❌ Neovim installation failed"
+        exit 1
+    fi
+else
+    echo "✅ Neovim 0.8+ already installed"
+fi
+
+# Install essential packages (excluding Python and Neovim since we handle them above)
 packages=(
     "git" 
     "curl"
@@ -151,7 +215,6 @@ packages=(
     "zsh"
     "fzf"
     "vim"
-    "neovim"
     "tree"
     "htop"
     "jq"
@@ -162,6 +225,9 @@ packages=(
     "build-essential"
     "nodejs"
     "npm"
+    "ca-certificates"  # Important for WSL
+    "gnupg"            # For adding PPAs
+    "software-properties-common"  # For add-apt-repository
 )
 
 for package in "${packages[@]}"; do
@@ -176,20 +242,34 @@ done
 # Install eza (not in standard repos)
 if ! command -v eza &> /dev/null; then
     echo "📦 Installing eza..."
-    wget -c https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz -O - | tar xz
-    sudo mv eza /usr/local/bin/
+    if command -v cargo &> /dev/null; then
+        cargo install eza
+    else
+        # Fallback to binary download
+        wget -c https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz -O - | tar xz
+        sudo mv eza /usr/local/bin/
+    fi
 fi
 
 # Install zoxide
 if ! command -v zoxide &> /dev/null; then
     echo "📦 Installing zoxide..."
-    curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
+    if command -v cargo &> /dev/null; then
+        cargo install zoxide
+    else
+        # Fallback to curl installation
+        curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
+    fi
 fi
 
 # Install yazi  
 if ! command -v yazi &> /dev/null; then
     echo "📦 Installing yazi..."
-    cargo install --locked yazi-fm yazi-cli
+    if command -v cargo &> /dev/null; then
+        cargo install --locked yazi-fm yazi-cli
+    else
+        echo "⚠️  Cargo not available, skipping yazi installation"
+    fi
 fi
 
 # Create symlinks for fd and bat (they have different names on Ubuntu)
@@ -207,6 +287,51 @@ if command -v npm &> /dev/null; then
     npm install -g @google/gemini-cli
 fi
 
+# WSL-specific fixes
+if [[ -n "$WSL_DISTRO_NAME" ]]; then
+    echo "🔧 Applying WSL-specific fixes..."
+    
+    # Fix potential zsh completion issues by ensuring completions directory exists
+    sudo mkdir -p /usr/share/zsh/vendor-completions
+    
+    # Install Docker completions if Docker is available
+    if command -v docker &> /dev/null; then
+        echo "🐳 Docker found, ensuring completions are available..."
+        if [[ ! -f /usr/share/zsh/vendor-completions/_docker ]]; then
+            echo "Installing Docker zsh completions..."
+            sudo curl -L https://raw.githubusercontent.com/docker/cli/master/contrib/completion/zsh/_docker -o /usr/share/zsh/vendor-completions/_docker
+        fi
+    else
+        echo "🐳 Docker not found - install with: sudo apt install docker.io"
+    fi
+    
+    # Ensure proper permissions for zsh completions
+    sudo chmod 644 /usr/share/zsh/vendor-completions/* 2>/dev/null || true
+fi
+
 {{- end }}
 
 echo "✅ Package installation complete!"
+
+# Final verification
+echo "🔍 Verifying key installations..."
+if command -v cargo &> /dev/null; then
+    echo "✅ Cargo: $(cargo --version)"
+else
+    echo "❌ Cargo not found"
+fi
+
+if command -v nvim &> /dev/null; then
+    echo "✅ Neovim: $(nvim --version | head -n1)"
+else
+    echo "❌ Neovim not found"
+fi
+
+if command -v zsh &> /dev/null; then
+    echo "✅ Zsh: $(zsh --version)"
+else
+    echo "❌ Zsh not found"
+fi
+
+echo "💡 If you encounter any issues, try: source ~/.zprofile"
+echo "💡 For WSL users: You may need to restart your terminal or run 'exec zsh'"

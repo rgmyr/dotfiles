@@ -1,6 +1,8 @@
 # `rgmyr.files`
 
-My cross-platform setup and configuration system for macOS and Debian-based systems, managed with [chezmoi](https://chezmoi.io). Intend to add Windows support, at least in the WSL environment.
+Cross-platform setup scripts and config files for Unix-like (macOS, Debian) machines, managed with [chezmoi](https://chezmoi.io).
+
+Sort of supports WSL - have to manually install `zsh-history-substring-search`, a newer version of `neovim`, there's some hacks to a silence warnings about `zsh` docker completions symlinking, etc. My preference is to use as few Windows machines as possible, so I probably won't put a lot of effort into making it bulletproof.
 
 ## How Chezmoi Works
 
@@ -10,36 +12,25 @@ Chezmoi is a dotfile manager that uses templates to adapt configuration files an
 
 - **Modern CLI tools** that offer improved versions of traditional Unix commands
     - `exa, bat, ripgrep, fzf, zoxide, yazi` etc.
-    - Only aliasing certain commands like `ls/ll -> exa` to always use the improved version
-    - Leaving basic `cat` and `grep` accessible
+    - Aliasing certain commands like `ls/ll -> exa, cat -> bat` to always use the improved version
+    - Leaving basic `grep` accessible
+- **[Base16](https://github.com/RRethy/nvim-base16)** for consistent colors across terminals and easy switching
+    - `theme github`: `base16-github-dark-dimmed` (default)
+    - `theme solarized`: `base16-solarized-light`
+    - `theme rgmyr`: a custom theme, similar to solarized dark but a little easier on the eyes
+    - Many other public themes available, see [the project repo](https://github.com/RRethy/nvim-base16).
 - **[Neovim](https://neovim.io/)** with [LazyVim](https://www.lazyvim.org/) for managing plugins, keymaps, and options
     - `jj` to escape from insert mode, `;` to enter command mode 
+    - Collection of themes mapped to `<leader>` + `tg, ts, tt, tc` (github, solarized, tokyonight, catppuccin, etc.)
 - **Terminal multiplexing** with [tmux](https://github.com/tmux/tmux/wiki)
     - `Ctrl+a` instead of `Ctrl+b` to enter tmux mode
-    - `\` and `-` to split panes (v/h), rather than `%` and `"`
-    - `vim`-style keybindings for pane navigation and resizing
-- **AI-assisted development** (tbd, interested in `supermaven`, `cursor-cli`, `gemini-cli`, `aider`, `avante.nvim`)
+    - `|` and `-` to split panes, rather than `%` and `"`
+    - `vim`-style keybindings for pane navigation (`hjkl`) and resizing (`HJKL`)
+- **AI-assisted development** 
     - [supermaven](https://github.com/supermaven-ai/supermaven) for fast AI completion in Neovim
-    - TBD on agents: `cursor-cli`, `aider`, `gemini-cli`
-- **[Base16](https://github.com/RRethy/nvim-base16)** for consistent colors across terminals and easy switching
-    - `theme rgmyr`: my default custom theme, similar to solarized dark but a little easier on the eyes
-    - `theme solarized`: `base16-solarized-light`
-    - `theme github`: `base16-github-dark-dimmed`
-    - Many other themes available, see [the project repo](https://github.com/RRethy/nvim-base16).
-    - This should be transferrable to LazyVim, but it's induced some strange issues so we just stick with
+    - TBD on agents. Trying: `claude-code`, `cursor-cli`, `gemini-cli`, `aider`
 
 ## Installation
-
-**NOTE**: This does currently assume that you've installed basic build tools already. If not, you can install them with the following commands:
-
-```bash
-# macOS
-brew install build-essential
-
-# Debian-based systems
-sudo apt-get update
-sudo apt-get install build-essential
-```
 
 ### One-Liner Installation
 ```bash
@@ -284,5 +275,8 @@ backup-dotfiles           # Create timestamped backup
 chezmoi status            # See what's changed
 chezmoi diff              # See exact differences
 ```
+
+
+https://github.com/neovim/neovim/releases/download/v0.11.3/nvim-linux-arm64.tar.gz
 
 

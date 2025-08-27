@@ -12,17 +12,29 @@ if [[ -n "$WSL_DISTRO_NAME" ]]; then
     sudo mkdir -p /usr/share/zsh/vendor-completions
     sudo chmod 755 /usr/share/zsh/vendor-completions
     
-    # Fix potential completion file issues
-    if [[ -f /usr/share/zsh/vendor-completions/_docker ]] && [[ ! -s /usr/share/zsh/vendor-completions/_docker ]]; then
-        echo "🔧 Fixing empty Docker completion file..."
-        sudo rm -f /usr/share/zsh/vendor-completions/_docker
+    # Fix potential Docker completion file issues
+    docker_completion="/usr/share/zsh/vendor-completions/_docker"
+    if [[ -e "$docker_completion" ]]; then
+        # Check if it's empty, broken symlink, or points to WSL mount that may not be available
+        if [[ ! -s "$docker_completion" ]] || [[ -L "$docker_completion" && ! -r "$docker_completion" ]]; then
+            echo "🔧 Fixing broken Docker completion file (empty or broken symlink)..."
+            sudo rm -f "$docker_completion"
+        elif [[ -L "$docker_completion" ]]; then
+            # If it's a symlink to WSL Docker Desktop, that's fine but may cause startup warnings
+            link_target=$(readlink "$docker_completion")
+            if [[ "$link_target" == *"/mnt/wsl/docker-desktop"* ]]; then
+                echo "📝 Docker completion is symlinked to Docker Desktop (may cause startup warnings)"
+            fi
+        fi
     fi
     
-    # Install Docker completions if Docker is available
-    if command -v docker &> /dev/null; then
+    # Install Docker completions if Docker is available and completion is missing/broken
+    if command -v docker &> /dev/null && [[ ! -s "$docker_completion" ]]; then
         echo "🐳 Installing Docker zsh completions..."
-        sudo curl -L https://raw.githubusercontent.com/docker/cli/master/contrib/completion/zsh/_docker -o /usr/share/zsh/vendor-completions/_docker
-        sudo chmod 644 /usr/share/zsh/vendor-completions/_docker
+        # Ensure the directory exists before trying to write to it
+        sudo mkdir -p "$(dirname "$docker_completion")"
+        sudo curl -L https://raw.githubusercontent.com/docker/cli/master/contrib/completion/zsh/_docker -o "$docker_completion"
+        sudo chmod 644 "$docker_completion"
     fi
 fi
 
@@ -102,13 +114,14 @@ else
 fi
 
 # Set zsh as default shell if not already
-if [[ "$SHELL" != "{{ .shell }}" ]]; then
+ZSH_PATH=$(which zsh)
+if [[ "$SHELL" != "$ZSH_PATH" ]]; then
     echo "🔄 Setting zsh as default shell..."
     # Add zsh to allowed shells if not already there
-    if ! grep -q "{{ .shell }}" /etc/shells; then
-        echo "{{ .shell }}" | sudo tee -a /etc/shells
+    if ! grep -q "$ZSH_PATH" /etc/shells; then
+        echo "$ZSH_PATH" | sudo tee -a /etc/shells
     fi
-    chsh -s {{ .shell }}
+    chsh -s "$ZSH_PATH"
     echo "✅ Default shell changed to zsh (will take effect on next login)"
 else
     echo "✅ Zsh is already the default shell"

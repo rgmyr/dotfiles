@@ -36,16 +36,14 @@ HISTFILE=~/.zsh_history
 zstyle ':completion:*' menu select
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 
-# Default editor
-{{- if eq .editor "nvim" }}
-export EDITOR="nvim"
-{{- else }}
-export EDITOR="vim"
-{{- end }}
-
-# If editor is nvim, alias vim to nvim
-if [ "$EDITOR" = "nvim" ]; then
+# Default editor - auto-detect best available
+if command -v nvim &> /dev/null; then
+    export EDITOR="nvim"
     alias vim="nvim"
+elif command -v vim &> /dev/null; then
+    export EDITOR="vim"
+else
+    export EDITOR="vi"
 fi
 
 # Oh My Zsh configuration
@@ -77,8 +75,13 @@ source $ZSH/oh-my-zsh.sh
 # ======================================================
 
 # Enable fzf keybindings and fuzzy auto-completion
-source {{ .fzf_path }}/key-bindings.zsh
-source {{ .fzf_path }}/completion.zsh
+if [[ -f "{{ .fzf_path }}/key-bindings.zsh" ]] && [[ -f "{{ .fzf_path }}/completion.zsh" ]]; then
+    source {{ .fzf_path }}/key-bindings.zsh
+    source {{ .fzf_path }}/completion.zsh
+else
+    echo "⚠️  fzf files not found at {{ .fzf_path }}"
+    echo "💡 Update fzf_path in .chezmoi.toml.tmpl for this system"
+fi
 
 # ======================================================
 # ===================== ALIASES ========================
@@ -98,7 +101,7 @@ alias ll='eza -la --icons --git'
 alias tree='eza --tree --icons'
 alias cat='bat'
 alias find='fd'
-alias grep='rg'
+# alias grep='rg'
 alias cd='z'  # zoxide smart cd
 
 # Explicit tmux conf path
@@ -365,7 +368,7 @@ fi
 setup_fzf_colors
 
 # Set default theme
-theme rgmyr
+theme github
 
 # =============================================================================
 # USER CUSTOMIZATIONS - Add your personal settings below this line

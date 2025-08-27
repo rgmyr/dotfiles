@@ -175,18 +175,29 @@ else
     echo "✅ Python already available"
 fi
 
-# Install newer Neovim (0.8+) for lazy.nvim compatibility
-if ! command -v nvim &> /dev/null || ! nvim --version | grep -q "NVIM v0\.[89]\|NVIM v[1-9]"; then
-    echo "📝 Installing newer Neovim (0.8+) for lazy.nvim compatibility..."
+# Check Neovim installation and version
+if command -v nvim &> /dev/null; then
+    nvim_version=$(nvim --version | head -n1 | grep -o 'v[0-9]\+\.[0-9]\+')
+    nvim_major=$(echo "$nvim_version" | cut -d'v' -f2 | cut -d'.' -f1)
+    nvim_minor=$(echo "$nvim_version" | cut -d'.' -f2)
     
-    # Remove old version if present
-    if command -v nvim &> /dev/null; then
-        echo "Removing old Neovim version..."
-        sudo apt remove -y neovim
+    echo "📝 Found Neovim $nvim_version"
+    
+    # Check if version is adequate (0.8+)
+    if [[ "$nvim_major" -gt 0 ]] || [[ "$nvim_major" -eq 0 && "$nvim_minor" -ge 8 ]]; then
+        echo "✅ Neovim $nvim_version is sufficient (0.8+ required)"
+    else
+        echo "⚠️  Neovim $nvim_version is too old (0.8+ required)"
+        echo "💡 Consider manually installing a newer version from:"
+        echo "   - https://github.com/neovim/neovim/releases"
+        echo "   - AppImage, snap, or build from source"
+        echo "   - Skipping automatic installation to preserve your setup"
     fi
+else
+    echo "📝 Installing Neovim (0.8+) for lazy.nvim compatibility..."
     
     # Add Neovim PPA for latest stable version
-    if ! grep -q "neovim-ppa" /etc/apt/sources.list.d/*; then
+    if ! grep -q "neovim-ppa" /etc/apt/sources.list.d/* 2>/dev/null; then
         echo "Adding Neovim PPA..."
         sudo add-apt-repository ppa:neovim-ppa/stable -y
         sudo apt update
@@ -203,8 +214,6 @@ if ! command -v nvim &> /dev/null || ! nvim --version | grep -q "NVIM v0\.[89]\|
         echo "❌ Neovim installation failed"
         exit 1
     fi
-else
-    echo "✅ Neovim 0.8+ already installed"
 fi
 
 # Install essential packages (excluding Python and Neovim since we handle them above)
@@ -223,12 +232,34 @@ packages=(
     "bat"
     "tmux"
     "build-essential"
-    "nodejs"
-    "npm"
     "ca-certificates"  # Important for WSL
     "gnupg"            # For adding PPAs
     "software-properties-common"  # For add-apt-repository
 )
+
+# Install Node.js and npm intelligently
+if ! command -v node &> /dev/null; then
+    echo "🟢 Installing Node.js..."
+    # Add NodeSource repository
+    curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+    sudo apt install -y nodejs
+else
+    echo "✅ Node.js already installed: $(node --version)"
+fi
+
+if ! command -v npm &> /dev/null; then
+    echo "📦 Installing npm..."
+    # If Node.js is from NodeSource, npm should be included
+    if node --version | grep -q "v[0-9]"; then
+        echo "✅ npm should be included with Node.js"
+        # If still missing, try installing via NodeSource
+        if ! command -v npm &> /dev/null; then
+            sudo apt install -y npm
+        fi
+    fi
+else
+    echo "✅ npm already installed: $(npm --version)"
+fi
 
 for package in "${packages[@]}"; do
     if ! dpkg -l | grep -q "^ii  $package "; then
@@ -291,22 +322,16 @@ fi
 if [[ -n "$WSL_DISTRO_NAME" ]]; then
     echo "🔧 Applying WSL-specific fixes..."
     
-    # Fix potential zsh completion issues by ensuring completions directory exists
+    # Create zsh completions directory and set permissions
     sudo mkdir -p /usr/share/zsh/vendor-completions
+    sudo chmod 755 /usr/share/zsh/vendor-completions
     
-    # Install Docker completions if Docker is available
+    # Note: Docker completions will be handled by setup-shell.sh script
     if command -v docker &> /dev/null; then
-        echo "🐳 Docker found, ensuring completions are available..."
-        if [[ ! -f /usr/share/zsh/vendor-completions/_docker ]]; then
-            echo "Installing Docker zsh completions..."
-            sudo curl -L https://raw.githubusercontent.com/docker/cli/master/contrib/completion/zsh/_docker -o /usr/share/zsh/vendor-completions/_docker
-        fi
+        echo "🐳 Docker found - completions will be set up by setup-shell script"
     else
         echo "🐳 Docker not found - install with: sudo apt install docker.io"
     fi
-    
-    # Ensure proper permissions for zsh completions
-    sudo chmod 644 /usr/share/zsh/vendor-completions/* 2>/dev/null || true
 fi
 
 {{- end }}

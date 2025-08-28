@@ -26,46 +26,62 @@ brew update
 if ! command -v cargo &> /dev/null; then
     echo "🦀 Installing Rust and Cargo..."
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    source ~/.cargo/env
+    
+    # Source the cargo environment (this sets up PATH and other env vars)
+    if [[ -f "$HOME/.cargo/env" ]]; then
+        source "$HOME/.cargo/env"
+        echo "✅ Rust and Cargo environment sourced"
+    else
+        echo "⚠️  .cargo/env not found, manually adding to PATH"
+        export PATH="$HOME/.cargo/bin:$PATH"
+    fi
     
     # Add cargo to PATH for current session and future sessions
-    export PATH="$HOME/.cargo/bin:$PATH"
-    if ! grep -q "export PATH.*cargo/bin" ~/.zprofile; then
-        echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.zprofile
+    if ! grep -q "source.*cargo/env" ~/.zprofile; then
+        echo 'source "$HOME/.cargo/env"' >> ~/.zprofile
     fi
-    if ! grep -q "export PATH.*cargo/bin" ~/.bash_profile; then
-        echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.bash_profile
+    if ! grep -q "source.*cargo/env" ~/.bash_profile; then
+        echo 'source "$HOME/.cargo/env"' >> ~/.bash_profile
     fi
-    echo "✅ Rust and Cargo installed successfully"
+    
+    # Verify installation
+    if command -v cargo &> /dev/null; then
+        echo "✅ Rust and Cargo installed successfully: $(cargo --version)"
+    else
+        echo "❌ Cargo not found in PATH after installation"
+        exit 1
+    fi
 else
-    echo "✅ Rust and Cargo already installed"
-    # Ensure cargo is in PATH
-    export PATH="$HOME/.cargo/bin:$PATH"
+    echo "✅ Rust and Cargo already installed: $(cargo --version)"
+    # Ensure cargo is in PATH for current session
+    if [[ -f "$HOME/.cargo/env" ]]; then
+        source "$HOME/.cargo/env"
+    else
+        export PATH="$HOME/.cargo/bin:$PATH"
+    fi
 fi
 
-# Install uv first (Python package manager)
+# Install uv first (Python package manager) - use official installer
 if ! command -v uv &> /dev/null; then
     echo "🐍 Installing uv (Python package manager)..."
-    if command -v cargo &> /dev/null; then
-        cargo install uv
-        # Add uv to PATH for current session
-        export PATH="$HOME/.cargo/bin:$PATH"
-        # Also add to shell profile for future sessions
-        if ! grep -q "export PATH.*cargo/bin" ~/.zprofile; then
-            echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.zprofile
-        fi
+    # Use the official uv installer (not available on crates.io yet)
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    
+    # Add uv to PATH for current session and future sessions
+    export PATH="$HOME/.local/bin:$PATH"
+    if ! grep -q "export PATH.*local/bin" ~/.zprofile; then
+        echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zprofile
+    fi
+    
+    # Verify installation
+    if command -v uv &> /dev/null; then
+        echo "✅ uv installed successfully: $(uv --version)"
     else
-        echo "⚠️  Cargo not available, falling back to curl installation..."
-        curl -LsSf https://astral.sh/uv/install.sh | sh
-        # Add uv to PATH for current session
-        export PATH="$HOME/.cargo/bin:$PATH"
-        # Also add to shell profile for future sessions
-        if ! grep -q "export PATH.*cargo/bin" ~/.zprofile; then
-            echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.zprofile
-        fi
+        echo "❌ uv installation failed"
+        exit 1
     fi
 else
-    echo "✅ uv already installed"
+    echo "✅ uv already installed: $(uv --version)"
 fi
 
 # Install Python via uv if not available
@@ -207,41 +223,65 @@ sudo apt update
 if ! command -v cargo &> /dev/null; then
     echo "🦀 Installing Rust and Cargo..."
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    source ~/.cargo/env
+    
+    # Source the cargo environment (this sets up PATH and other env vars)
+    if [[ -f "$HOME/.cargo/env" ]]; then
+        source "$HOME/.cargo/env"
+        echo "✅ Rust and Cargo environment sourced"
+    else
+        echo "⚠️  .cargo/env not found, manually adding to PATH"
+        export PATH="$HOME/.cargo/bin:$PATH"
+    fi
     
     # Add cargo to PATH for current session and future sessions
-    export PATH="$HOME/.cargo/bin:$PATH"
-    if ! grep -q "export PATH.*cargo/bin" ~/.zprofile; then
-        echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.zprofile
+    if ! grep -q "source.*cargo/env" ~/.zprofile; then
+        echo 'source "$HOME/.cargo/env"' >> ~/.zprofile
     fi
-    if ! grep -q "export PATH.*cargo/bin" ~/.bashrc; then
-        echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.bashrc
+    if ! grep -q "source.*cargo/env" ~/.bashrc; then
+        echo 'source "$HOME/.cargo/env"' >> ~/.bashrc
     fi
-    echo "✅ Rust and Cargo installed successfully"
+    
+    # Verify installation
+    if command -v cargo &> /dev/null; then
+        echo "✅ Rust and Cargo installed successfully: $(cargo --version)"
+    else
+        echo "❌ Cargo not found in PATH after installation"
+        exit 1
+    fi
 else
-    echo "✅ Rust and Cargo already installed"
-    # Ensure cargo is in PATH
-    export PATH="$HOME/.cargo/bin:$PATH"
+    echo "✅ Rust and Cargo already installed: $(cargo --version)"
+    # Ensure cargo is in PATH for current session
+    if [[ -f "$HOME/.cargo/env" ]]; then
+        source "$HOME/.cargo/env"
+    else
+        export PATH="$HOME/.cargo/bin:$PATH"
+    fi
 fi
 
-# Install uv (Python package manager) via cargo
+# Install uv (Python package manager) - use official installer
 if ! command -v uv &> /dev/null; then
     echo "🐍 Installing uv (Python package manager)..."
-    if command -v cargo &> /dev/null; then
-        cargo install uv
-        # Add uv to PATH for current session
-        export PATH="$HOME/.cargo/bin:$PATH"
-        # Also add to shell profile for future sessions
-        if ! grep -q "export PATH.*cargo/bin" ~/.zprofile; then
-            echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.zprofile
-        fi
+    # Use the official uv installer (not available on crates.io yet)
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    
+    # Add uv to PATH for current session and future sessions
+    export PATH="$HOME/.local/bin:$PATH"
+    if ! grep -q "export PATH.*local/bin" ~/.zprofile; then
+        echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zprofile
+    fi
+    if ! grep -q "export PATH.*local/bin" ~/.bashrc; then
+        echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+    fi
+    
+    # Verify installation
+    if command -v uv &> /dev/null; then
+        echo "✅ uv installed successfully: $(uv --version)"
     else
-        echo "⚠️  Cargo not available, falling back to curl installation..."
-        curl -LsSf https://astral.sh/uv/install.sh | sh
-        export PATH="$HOME/.cargo/bin:$PATH"
+        echo "❌ uv installation failed"
+        exit 1
     fi
 else
-    echo "✅ uv already installed"
+    echo "✅ uv already installed: $(uv --version)"
 fi
 
 # Install Python via uv if not available
@@ -450,4 +490,5 @@ else
 fi
 
 echo "💡 If you encounter any issues, try: source ~/.zprofile"
-echo "💡 For WSL users: You may need to restart your terminal or run 'exec zsh'"
+echo "💡 For Rust/Cargo: If tools aren't found, run: source ~/.cargo/env"
+echo "💡 For WSL: You may need to restart your terminal or run 'exec zsh'"

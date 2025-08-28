@@ -323,23 +323,92 @@ if command -v nvim &> /dev/null; then
 else
     echo "📝 Installing Neovim (0.8+) for lazy.nvim compatibility..."
     
-    # Add Neovim PPA for latest stable version
+    # Try multiple installation methods
+    nvim_installed=false
+    
+    # Method 1: Try Neovim PPA (may not work on newer Ubuntu versions)
     if ! grep -q "neovim-ppa" /etc/apt/sources.list.d/* 2>/dev/null; then
-        echo "Adding Neovim PPA..."
-        sudo add-apt-repository ppa:neovim-ppa/stable -y
-        sudo apt update
+        echo "🔄 Trying Neovim PPA..."
+        if sudo add-apt-repository ppa:neovim-ppa/stable -y 2>/dev/null; then
+            sudo apt update
+            if sudo apt install -y neovim 2>/dev/null; then
+                nvim_installed=true
+                echo "✅ Neovim installed via PPA"
+            fi
+        else
+            echo "⚠️  Neovim PPA not available for this Ubuntu version"
+        fi
     fi
     
-    # Install Neovim
-    sudo apt install -y neovim
+    # Method 2: Try system package (may be older version)
+    if [[ "$nvim_installed" == false ]]; then
+        echo "🔄 Trying system package..."
+        if sudo apt install -y neovim 2>/dev/null; then
+            nvim_installed=true
+            echo "✅ Neovim installed via system package"
+        fi
+    fi
     
-    # Verify version
-    if command -v nvim &> /dev/null; then
+    # Method 3: Try snap (usually has latest version)
+    if [[ "$nvim_installed" == false ]]; then
+        echo "🔄 Trying snap installation..."
+        if command -v snap &> /dev/null; then
+            if sudo snap install nvim --classic 2>/dev/null; then
+                nvim_installed=true
+                echo "✅ Neovim installed via snap"
+            fi
+        else
+            echo "⚠️  Snap not available"
+        fi
+    fi
+    
+    # Method 4: Manual download and installation
+    if [[ "$nvim_installed" == false ]]; then
+        echo "🔄 Trying manual download..."
+        echo "💡 Downloading Neovim AppImage from GitHub releases..."
+        
+        # Create temporary directory
+        temp_dir=$(mktemp -d)
+        cd "$temp_dir"
+        
+        # Try to download latest stable release
+        if curl -s -L -o nvim.tar.gz "https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz" 2>/dev/null; then
+            tar -xzf nvim.tar.gz
+            sudo mv nvim-linux64/bin/nvim /usr/local/bin/
+            sudo mv nvim-linux64/lib/nvim /usr/local/lib/
+            sudo mv nvim-linux64/share/nvim /usr/local/share/
+            nvim_installed=true
+            echo "✅ Neovim installed manually from GitHub releases"
+        else
+            echo "❌ Manual download failed"
+        fi
+        
+        # Clean up
+        cd - > /dev/null
+        rm -rf "$temp_dir"
+    fi
+    
+    # Final verification
+    if [[ "$nvim_installed" == true ]] && command -v nvim &> /dev/null; then
         nvim_version=$(nvim --version | head -n1)
-        echo "✅ Neovim installed: $nvim_version"
+        echo "✅ Neovim installation successful: $nvim_version"
+        
+        # Check if version is adequate (0.8+)
+        nvim_major=$(echo "$nvim_version" | grep -o 'v[0-9]\+' | cut -d'v' -f2)
+        nvim_minor=$(echo "$nvim_version" | grep -o '\.[0-9]\+' | head -1 | cut -d'.' -f2)
+        
+        if [[ "$nvim_major" -gt 0 ]] || [[ "$nvim_major" -eq 0 && "$nvim_minor" -ge 8 ]]; then
+            echo "✅ Neovim version is sufficient (0.8+ required)"
+        else
+            echo "⚠️  Neovim version may be too old for lazy.nvim"
+            echo "💡 Consider manually installing a newer version"
+        fi
     else
-        echo "❌ Neovim installation failed"
-        exit 1
+        echo "❌ All Neovim installation methods failed"
+        echo "💡 You can manually install Neovim from:"
+        echo "   - https://github.com/neovim/neovim/releases"
+        echo "   - Or continue without Neovim (some features may not work)"
+        echo "💡 Continuing installation..."
     fi
 fi
 

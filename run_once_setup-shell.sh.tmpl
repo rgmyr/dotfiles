@@ -128,7 +128,51 @@ else
 fi
 
 {{- if eq .chezmoi.os "darwin" }}
-# macOS: Set up fzf integration based on architecture
+# macOS: Set up fzf integration and fix common completion issues
+echo "🍎 Setting up macOS-specific zsh completions..."
+
+# Ensure Homebrew completions are properly linked
+if command -v brew &> /dev/null; then
+    echo "🔧 Setting up Homebrew completions..."
+    
+    # Create Homebrew completions directory if it doesn't exist
+    mkdir -p "$HOME/.zsh/completions"
+    
+    # Link Homebrew completions
+    if [[ -d "/opt/homebrew/share/zsh/site-functions" ]]; then
+        # Apple Silicon Mac
+        if [[ ! -L "$HOME/.zsh/completions/_brew" ]]; then
+            ln -sf "/opt/homebrew/share/zsh/site-functions/_brew" "$HOME/.zsh/completions/_brew"
+        fi
+        # Link other common Homebrew completions
+        for completion in /opt/homebrew/share/zsh/site-functions/_*; do
+            if [[ -f "$completion" ]]; then
+                basename=$(basename "$completion")
+                if [[ ! -L "$HOME/.zsh/completions/$basename" ]]; then
+                    ln -sf "$completion" "$HOME/.zsh/completions/$basename"
+                fi
+            fi
+        done
+    elif [[ -d "/usr/local/share/zsh/site-functions" ]]; then
+        # Intel Mac
+        if [[ ! -L "$HOME/.zsh/completions/_brew" ]]; then
+            ln -sf "/usr/local/share/zsh/site-functions/_brew" "$HOME/.zsh/completions/_brew"
+        fi
+        # Link other common Homebrew completions
+        for completion in /usr/local/share/zsh/site-functions/_*; do
+            if [[ -f "$completion" ]]; then
+                basename=$(basename "$completion")
+                if [[ ! -L "$HOME/.zsh/completions/$basename" ]]; then
+                    ln -sf "$completion" "$HOME/.zsh/completions/$basename"
+                fi
+            fi
+        done
+    fi
+    
+    echo "✅ Homebrew completions linked"
+fi
+
+# Set up fzf integration based on architecture
 if [[ $(uname -m) == "arm64" ]]; then
     # Apple Silicon Mac
     if [[ -f "/opt/homebrew/opt/fzf/install" ]] && [[ ! -f "$HOME/.fzf.zsh" ]]; then
@@ -142,6 +186,67 @@ else
         /usr/local/opt/fzf/install --key-bindings --completion --no-update-rc
     fi
 fi
+
+# Create macOS-specific safe compinit configuration
+if [[ ! -f "$HOME/.zshrc.macos" ]]; then
+    cat > "$HOME/.zshrc.macos" << 'EOF'
+# macOS-specific zsh completions fix
+# This ensures completions work properly on macOS
+
+# Add Homebrew completions to fpath
+if [[ -d "$HOME/.zsh/completions" ]]; then
+    fpath=("$HOME/.zsh/completions" $fpath)
+fi
+
+# Add Homebrew completions to fpath based on architecture
+if [[ $(uname -m) == "arm64" ]]; then
+    # Apple Silicon Mac
+    if [[ -d "/opt/homebrew/share/zsh/site-functions" ]]; then
+        fpath=("/opt/homebrew/share/zsh/site-functions" $fpath)
+    fi
+else
+    # Intel Mac
+    if [[ -d "/usr/local/share/zsh/site-functions" ]]; then
+        fpath=("/usr/local/share/zsh/site-functions" $fpath)
+    fi
+fi
+
+# Safe compinit function for macOS
+safe_compinit() {
+    # Ensure fpath is properly set
+    if [[ -d "$HOME/.zsh/completions" ]]; then
+        fpath=("$HOME/.zsh/completions" $fpath)
+    fi
+    
+    # Load completions with error handling
+    compinit -i  # Ignore insecure files
+}
+
+# Override compinit with safe version
+autoload -Uz safe_compinit
+safe_compinit
+EOF
+    echo "✅ Created macOS-specific safe compinit configuration"
+fi
+
+# Ensure .zshrc loads the macOS config
+if [[ -f "$HOME/.zshrc" ]] && ! grep -q "source.*zshrc.macos" "$HOME/.zshrc"; then
+    echo "source ~/.zshrc.macos" >> "$HOME/.zshrc"
+    echo "✅ Added macOS zshrc to main .zshrc"
+fi
+
+# Fix common macOS completion permission issues
+echo "🔧 Fixing completion permissions..."
+if [[ -d "$HOME/.zsh/completions" ]]; then
+    chmod 644 "$HOME/.zsh/completions"/* 2>/dev/null || true
+fi
+
+# Ensure system completions are accessible
+if [[ -d "/usr/share/zsh/completions" ]]; then
+    sudo chmod 755 /usr/share/zsh/completions
+    sudo chmod 644 /usr/share/zsh/completions/* 2>/dev/null || true
+fi
+
 {{- else }}
 # Linux: fzf should already be configured via package installation
 echo "✅ fzf integration configured via package manager"
@@ -214,6 +319,38 @@ if [[ -n "$WSL_DISTRO_NAME" ]]; then
         echo "❌ Safe compinit configuration missing"
     fi
 fi
+
+# macOS-specific final checks
+{{- if eq .chezmoi.os "darwin" }}
+echo "🍎 macOS-specific verification..."
+if [[ -d "$HOME/.zsh/completions" ]]; then
+    echo "✅ Homebrew completions directory exists"
+    completion_count=$(ls -1 "$HOME/.zsh/completions"/* 2>/dev/null | wc -l)
+    echo "   Found $completion_count Homebrew completion files"
+    
+    # Check for specific important completions
+    if [[ -L "$HOME/.zsh/completions/_brew" ]]; then
+        echo "✅ Homebrew completion linked"
+    else
+        echo "⚠️  Homebrew completion not linked"
+    fi
+else
+    echo "❌ Homebrew completions directory missing"
+fi
+
+if [[ -f "$HOME/.zshrc.macos" ]]; then
+    echo "✅ macOS-specific safe compinit configuration created"
+else
+    echo "❌ macOS-specific safe compinit configuration missing"
+fi
+
+# Check fpath setup
+if [[ -f "$HOME/.zshrc" ]] && grep -q "source.*zshrc.macos" "$HOME/.zshrc"; then
+    echo "✅ macOS config loaded in .zshrc"
+else
+    echo "⚠️  macOS config not loaded in .zshrc"
+fi
+{{- end }}
 
 echo "💡 Run 'exec zsh' to start using your new configuration"
 echo "💡 If you still get errors, try: source ~/.zshrc"

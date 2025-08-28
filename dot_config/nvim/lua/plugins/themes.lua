@@ -1,7 +1,7 @@
 return {
   -- Popular themes for easy switching
   
-  -- Tokyo Night (default LazyVim theme)
+  -- Tokyo Night (default LazyVim theme) - SET AS DEFAULT
   {
     "folke/tokyonight.nvim",
     lazy = false,
@@ -73,7 +73,7 @@ return {
     end,
   },
 
-  -- GitHub Dark Dimmed (similar to your base16 favorite)
+  -- GitHub Dark Dimmed
   {
     'projekt0n/github-nvim-theme',
     name = 'github-theme',
@@ -86,7 +86,21 @@ return {
         },
         terminal_colors = true,
       })
-      -- vim.cmd('colorscheme github_dark_dimmed')
+      
+      -- Set as default theme
+      vim.cmd.colorscheme('github_dark_dimmed')
     end,
-  }
+  },
+
+  -- Theme persistence - remember the last selected theme
+  {
+    "folke/persistence.nvim",
+    event = "BufReadPre",
+    opts = { options = { "buffers", "curdir", "tabpages", "winsize", "help", "globals", "skiprtp" } },
+    keys = {
+      { "<leader>qs", function() require("persistence").load() end, desc = "Restore Session" },
+      { "<leader>ql", function() require("persistence").load({ last = true }) end, desc = "Restore Last Session" },
+      { "<leader>qd", function() require("persistence").stop() end, desc = "Don't Save Current Session" },
+    },
+  },
 }

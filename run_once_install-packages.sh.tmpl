@@ -174,8 +174,8 @@ if command -v cargo &> /dev/null; then
     
     # Install yazi (modern file manager)
     if ! command -v yazi &> /dev/null; then
-        echo "📦 Installing yazi via cargo..."
-        cargo install --locked yazi-fm yazi-cli
+        echo "📦 Installing yazi via cargo (using yazi-build)..."
+        cargo install --force yazi-build && yazi-build
     else
         echo "✅ yazi already installed"
     fi
@@ -493,7 +493,7 @@ fi
 if ! command -v yazi &> /dev/null; then
     echo "📦 Installing yazi..."
     if command -v cargo &> /dev/null; then
-        cargo install --locked yazi-fm yazi-cli
+        cargo install --force yazi-build && yazi-build
     else
         echo "⚠️  Cargo not available, skipping yazi installation"
     fi

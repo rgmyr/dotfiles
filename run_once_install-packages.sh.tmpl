@@ -536,6 +536,25 @@ fi
 
 {{- end }}
 
+# Install Oh My Zsh (if not already installed)
+if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
+    echo "📦 Installing Oh My Zsh..."
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended --keep-zshrc
+    echo "✅ Oh My Zsh installed"
+else
+    echo "✅ Oh My Zsh already installed"
+fi
+
+# Install zsh-history-substring-search plugin (third-party oh-my-zsh plugin)
+ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+if [[ ! -d "$ZSH_CUSTOM/plugins/zsh-history-substring-search" ]]; then
+    echo "📦 Installing zsh-history-substring-search plugin..."
+    git clone https://github.com/zsh-users/zsh-history-substring-search "$ZSH_CUSTOM/plugins/zsh-history-substring-search"
+    echo "✅ zsh-history-substring-search installed"
+else
+    echo "✅ zsh-history-substring-search already installed"
+fi
+
 echo "✅ Package installation complete!"
 
 # Final verification

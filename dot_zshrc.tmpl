@@ -181,11 +181,6 @@ env-info() {
     echo "Git User: $(git config user.name 2>/dev/null || echo 'Not configured')"
 }
 
-# Initialize zoxide (smart cd)
-if command -v zoxide &> /dev/null; then
-    eval "$(zoxide init zsh)"
-fi
-
 # Docker log viewer with container selection
 docker-logs() {
     if [[ $# -eq 0 ]]; then
@@ -370,6 +365,10 @@ setup_fzf_colors
 # Set default theme
 theme github
 
+# Initialize zoxide [wants to be last] (smart cd)
+if command -v zoxide &> /dev/null; then
+    eval "$(zoxide init zsh)"
+fi
 # =============================================================================
 # USER CUSTOMIZATIONS - Add your personal settings below this line
 # =============================================================================

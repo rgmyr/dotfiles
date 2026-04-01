@@ -1,7 +1,15 @@
+{{- $isWSL := false -}}
+{{- if eq .chezmoi.os "linux" -}}
+{{-   if .chezmoi.kernel.osrelease | lower | contains "microsoft" -}}
+{{-     $isWSL = true -}}
+{{-   end -}}
+{{- end -}}
+
 [data]
 os = {{ .chezmoi.os | quote }}
 arch = {{ .chezmoi.arch | quote }}
 hostname = {{ .chezmoi.hostname | quote }}
+is_wsl = {{ $isWSL }}
 
 # OS-specific package managers
 {{- if eq .chezmoi.os "darwin" }}

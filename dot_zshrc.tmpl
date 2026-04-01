@@ -158,6 +158,12 @@ alias uvremove='uv remove'
 alias flushdns='sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder'
 alias showfiles='defaults write com.apple.finder AppleShowAllFiles YES; killall Finder /System/Library/CoreServices/Finder.app'
 alias hidefiles='defaults write com.apple.finder AppleShowAllFiles NO; killall Finder /System/Library/CoreServices/Finder.app'
+{{- else if .is_wsl }}
+# WSL specific aliases
+alias open='explorer.exe'
+alias pbcopy='clip.exe'
+alias pbpaste='powershell.exe -NoProfile -Command Get-Clipboard'
+export BROWSER='wslview'
 {{- else }}
 # Linux specific aliases
 alias open='xdg-open'

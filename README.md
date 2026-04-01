@@ -2,18 +2,14 @@
 
 Cross-platform setup scripts and config files for Unix-like (macOS, Debian) machines, managed with [chezmoi](https://chezmoi.io).
 
-Sort of supports WSL - have to manually install `zsh-history-substring-search`, a newer version of `neovim`, there's some hacks to a silence warnings about `zsh` docker completions symlinking, etc. My preference is to use as few Windows machines as possible, so I probably won't put a lot of effort into making it bulletproof.
+Sort of supports WSL - have to manually install `zsh-history-substring-search`, a newer version of `neovim`, there's some hacks to a silence warnings about `zsh` docker completions symlinking, etc.
 
-## How Chezmoi Works
-
-Chezmoi is a dotfile manager that uses templates to adapt configuration files and one-time installation scripts. It detects OS, architecture, and environment, so that you can use appropriate versions of commands, paths, and settings on (potentially) any machine. For example, this repository automatically uses `/opt/homebrew` on Apple Silicon Macs and `/usr/local` on Intel Macs or when running under Rosetta 2.
-
-## My Idea of a Good Time
+## The Setup
 
 - **Modern CLI tools** that offer improved versions of traditional Unix commands
-    - `exa, bat, ripgrep, fzf, zoxide, yazi` etc.
-    - Aliasing certain commands like `ls/ll -> exa, cat -> bat` to always use the improved version
-    - Leaving basic `grep` accessible
+    - `eza, bat, ripgrep, fzf, zoxide, yazi` etc.
+    - Aliasing `ls/ll -> eza, find -> fd, cd -> z`
+    - Leaving `cat`, `grep` accessible (use `bat`, `rg` directly)
 - **[Base16](https://github.com/RRethy/nvim-base16)** for consistent colors across terminals and easy switching
     - `theme github`: `base16-github-dark-dimmed` (default)
     - `theme solarized`: `base16-solarized-light`
@@ -23,14 +19,15 @@ Chezmoi is a dotfile manager that uses templates to adapt configuration files an
     - `jj` to escape from insert mode, `;` to enter command mode 
     - Collection of themes mapped to `<leader>` + `tg, ts, tt, tc` (github, solarized, tokyonight, catppuccin, etc.)
 - **Terminal multiplexing** with [tmux](https://github.com/tmux/tmux/wiki)
-    - `Ctrl+a` instead of `Ctrl+b` to enter tmux mode
+    - `Ctrl+a` prefix instead of `Ctrl+b`
     - `|` and `-` to split panes, rather than `%` and `"`
     - `vim`-style keybindings for pane navigation (`hjkl`) and resizing (`HJKL`)
     - Shell helpers: `tm`, `tp`, `tv`, `tn` for quick session management
     - TPM plugins: resurrect, continuum (auto-save), fuzzback (fzf scrollback), fzf-url
-- **AI-assisted development** 
-    - [supermaven](https://github.com/supermaven-ai/supermaven) for fast AI completion in Neovim
-    - TBD on agents. Trying: `claude-code`, `cursor-cli`, `gemini-cli`, `aider`
+- `uv` for Python
+- `node` and `npm` for JS/TS
+- `docker` integration and shortcuts
+- Git with enhanced aliases
 
 ## Installation
 
@@ -54,33 +51,9 @@ exec zsh
 tmux new -s work
 ```
 
-## 🛠️ What Gets Installed
-
-### Core Applications
-- **[Zsh](https://www.zsh.org/)** + [Oh-my-zsh](https://ohmyz.sh/)
-- **[Neovim](https://neovim.io/)** with [LazyVim](https://www.lazyvim.org/)
-- **[tmux](https://github.com/tmux/tmux/wiki)** terminal multiplexer
-- **[fzf](https://junegunn.github.io/fzf/)** (fuzzy finder for everything)
-
-### Modern CLI Tools (Rust-powered)
-| Traditional | Modern | Purpose |
-|------------|---------|---------|
-| `ls` | `eza` | File listing with icons and git status |
-| `cat` | `bat` | File viewing with syntax highlighting |
-| `find` | `fd` | Fast file finding |
-| `grep` | `rg` (ripgrep) | Fast text search |
-| `cd` | `z` (zoxide) | Smart directory jumping |
-| File manager | `yazi` | Terminal-based file explorer |
-
-### Development Tools
-- **Git** with enhanced aliases
-- **[uv](https://docs.astral.sh/uv/)** for Python management
-- **Node.js** + npm for JS/TS
-- **Docker** integration and shortcuts
-
 ## Commands & Keybindings
 
-### 🐚 Zsh (Shell)
+### Zsh
 ```bash
 # Smart navigation
 z myproject          # Jump to frequently used directory
@@ -121,7 +94,7 @@ docker-logs         # Interactive container log viewer
 reload              # Reload zsh configuration
 ```
 
-### ⌨️  vim/nvim Keybindings
+### `vim`/`nvim` Keybindings
 ```bash
 # Custom mappings
 jj                  # Escape from insert mode
@@ -143,15 +116,7 @@ Shift+Tab           # Jump out of brackets/quotes (insert mode)
 <space>rc           # Edit keymaps with chezmoi
 ```
 
-### 🖥️ tmux (Terminal Multiplexer)
-
-The `tmux server` is a local process that manages:
-
-- multiple ongoing terminal sessions (like an instance of a terminal emulator)
-- each with multiple windows (like tabs within a session)
-- each having one or more panes arranged in an arbitrary grid
-- sessions and windows can be named
-- panes can be quickly split, unsplit, and resized
+### `tmux`
 
 #### Session Management
 ```bash
@@ -230,7 +195,7 @@ Installed plugins:
 - **tmux-fzf-url**: `Ctrl+a u` to fzf-pick URLs from scrollback
 - **base16-tmux**: Consistent theming with base16 colors
 
-### 🔍 Advanced File Navigation
+### Advanced File Navigation
 
 #### fzf (Fuzzy Finder)
 ```bash
@@ -245,7 +210,7 @@ Enter                     # Confirm selection
 Esc                       # Cancel
 ```
 
-#### fd (Find Files)
+#### fd
 ```bash
 fd pattern                # Find files/directories matching pattern
 fd -e py                  # Find only Python files  
@@ -254,7 +219,7 @@ fd -t d pattern           # Find only directories
 fd -H pattern             # Include hidden files
 ```
 
-#### ripgrep (Search in Files)
+#### ripgrep
 ```bash
 rg "pattern"              # Search for text in all files
 rg "pattern" --type js    # Search only in JavaScript files
@@ -264,7 +229,7 @@ rg -n "pattern"           # Show line numbers
 rg -C 3 "pattern"         # Show 3 lines of context
 ```
 
-### 📁 File Management with Yazi
+### File Management with Yazi
 ```bash
 yazi                      # Open file manager
 # Inside yazi:
@@ -281,15 +246,7 @@ x                         # Cut
 p                         # Paste
 ```
 
-## 🤖 Future: AI Integration
-
-Possible AI assistance tools:
-- **Aider**: Terminal-based AI pair programming
-- **Supermaven**: Fast AI completion in Neovim
-- **Cursor CLI**: Command-line version of Cursor's AI features
-- **avante.nvim**: Neovim plugin for AI-assisted development
-
-## 🔧 Customization & Management
+## Customization & Management
 
 ### Editing Configurations
 ```bash

@@ -1,0 +1,30 @@
+#!/bin/bash
+set -e
+
+echo "🖥️  Setting up tmux plugin manager (TPM)..."
+
+TPM_DIR="$HOME/.tmux/plugins/tpm"
+
+if [[ ! -d "$TPM_DIR" ]]; then
+    echo "📦 Installing TPM..."
+    if git clone https://github.com/tmux-plugins/tpm "$TPM_DIR" 2>/dev/null; then
+        echo "✅ TPM installed successfully"
+    else
+        echo "❌ Failed to clone TPM - check network connectivity"
+        exit 1
+    fi
+else
+    echo "✅ TPM already installed"
+fi
+
+# Install plugins non-interactively
+if [[ -x "$TPM_DIR/bin/install_plugins" ]]; then
+    echo "📦 Installing tmux plugins..."
+    "$TPM_DIR/bin/install_plugins" || echo "⚠️  Plugin install had issues (tmux may not be running - run prefix+I inside tmux)"
+    echo "✅ Plugin installation complete"
+else
+    echo "⚠️  TPM install_plugins script not found - run prefix+I inside tmux to install plugins"
+fi
+
+echo "✅ Tmux setup complete!"
+echo "💡 Inside tmux, press prefix+I to install/update plugins"

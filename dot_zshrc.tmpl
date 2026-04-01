@@ -100,7 +100,6 @@ alias cdh='cd ~'
 alias ls='eza --icons'
 alias ll='eza -la --icons --git'
 alias tree='eza --tree --icons'
-alias cat='bat'
 alias find='fd'
 # alias grep='rg'
 alias cd='z'  # zoxide smart cd
@@ -263,6 +262,57 @@ uv-project() {
     echo "✅ Virtual environment activated"
     
     echo "🚀 Ready to develop! Use 'uv add <package>' to add dependencies"
+}
+
+# ======================================================
+# ============= TMUX SESSION HELPERS ==================
+# ======================================================
+
+# tm - attach/create tmux session named after current directory
+tm() {
+    local session_name="${1:-$(basename "$PWD" | tr '.' '_')}"
+    printf '\033]0;%s\007' "$session_name"
+    if tmux has-session -t "=$session_name" 2>/dev/null; then
+        tmux attach-session -t "=$session_name"
+    else
+        tmux new-session -s "$session_name"
+    fi
+}
+
+# tp - fuzzy-pick a tmux session with fzf
+tp() {
+    if ! tmux list-sessions 2>/dev/null | grep -q .; then
+        tm; return
+    fi
+    if [[ $# -gt 0 ]]; then
+        tm "$1"; return
+    fi
+    local session
+    session=$(tmux list-sessions -F '#{session_name}' 2>/dev/null | \
+        fzf --height=40% --reverse --prompt='tmux session> ')
+    if [[ -n "$session" ]]; then
+        if [[ -n "$TMUX" ]]; then
+            tmux switch-client -t "=$session"
+        else
+            tmux attach-session -t "=$session"
+        fi
+    fi
+}
+
+# tv - create/attach tmux session with neovim
+tv() {
+    local session_name="$(basename "$PWD" | tr '.' '_')"
+    if tmux has-session -t "=$session_name" 2>/dev/null; then
+        tmux attach-session -t "=$session_name"
+    else
+        tmux new-session -s "$session_name" "$EDITOR ${1:-.}"
+    fi
+}
+
+# tn - create a named tmux session
+tn() {
+    [[ -z "$1" ]] && { echo "Usage: tn <session-name>"; return 1; }
+    tm "$1"
 }
 
 # ======================================================

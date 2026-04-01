@@ -26,6 +26,8 @@ Chezmoi is a dotfile manager that uses templates to adapt configuration files an
     - `Ctrl+a` instead of `Ctrl+b` to enter tmux mode
     - `|` and `-` to split panes, rather than `%` and `"`
     - `vim`-style keybindings for pane navigation (`hjkl`) and resizing (`HJKL`)
+    - Shell helpers: `tm`, `tp`, `tv`, `tn` for quick session management
+    - TPM plugins: resurrect, continuum (auto-save), fuzzback (fzf scrollback), fzf-url
 - **AI-assisted development** 
     - [supermaven](https://github.com/supermaven-ai/supermaven) for fast AI completion in Neovim
     - TBD on agents. Trying: `claude-code`, `cursor-cli`, `gemini-cli`, `aider`
@@ -105,6 +107,14 @@ dcup                 # docker compose up -d
 dcdown               # docker compose down
 dclogs               # docker compose logs -f
 
+# Tmux session helpers
+tm                   # Create/attach session named after current dir
+tm myproject         # Create/attach session named "myproject"
+tp                   # Fuzzy-pick a tmux session with fzf
+tv                   # Create/attach session with $EDITOR (neovim)
+tv src/              # Same, but open editor at specific path
+tn myproject         # Create a named session (alias for tm)
+
 # Utilities
 env-info            # Show current environment info
 docker-logs         # Interactive container log viewer
@@ -145,7 +155,14 @@ The `tmux server` is a local process that manages:
 
 #### Session Management
 ```bash
-# Outside tmux
+# Shell helpers (no prefix needed, work outside and inside tmux)
+tm                        # Create/attach session named after $PWD
+tm myproject              # Create/attach named session
+tp                        # Fuzzy-pick session with fzf
+tv                        # Session with $EDITOR opened
+tn myproject              # Create named session (alias for tm)
+
+# Raw tmux commands
 tmux new -s myproject     # Create named session
 tmux ls                   # List all sessions
 tmux attach -t myproject  # Attach to existing session
@@ -153,7 +170,8 @@ tmux kill-session -t myproject
 
 # Inside tmux (Prefix: Ctrl+a)
 Ctrl+a d                  # Detach (keeps session running)
-Ctrl+a s                  # Switch between sessions
+Ctrl+a S                  # Choose session from list
+Ctrl+a N                  # Create new session (prompts for name)
 Ctrl+a $                  # Rename current session
 Ctrl+a X                  # Kill current session (with confirmation)
 ```
@@ -180,12 +198,37 @@ Ctrl+a x                  # Kill current pane
 Ctrl+a Space              # Cycle through pane layouts
 ```
 
+#### Copy Mode (vi-style)
+```bash
+Ctrl+a [                  # Enter copy mode (vim-like scrolling)
+v                         # Begin selection
+C-v                       # Toggle rectangle selection
+y                         # Copy selection (stays in copy mode)
+Enter                     # Copy selection and exit copy mode
+```
+
 #### Power User Commands
 ```bash
 Ctrl+a e                  # Synchronize panes (type in all at once)
+Ctrl+a i                  # Pull last pane into current window
 Ctrl+a r                  # Reload tmux config
-Ctrl+a [                  # Enter copy mode (vim-like scrolling)
+Alt+k                     # Smart clear (no prefix needed):
+                          #   In shell: clears screen + scrollback
+                          #   In programs (nvim, etc.): sends Ctrl+l
 ```
+
+#### Plugins (managed by TPM)
+```bash
+Ctrl+a I                  # Install/update plugins
+Ctrl+a U                  # Update plugins
+```
+
+Installed plugins:
+- **tmux-resurrect**: Save/restore sessions across reboots (`Ctrl+a Ctrl+s` save, `Ctrl+a Ctrl+r` restore)
+- **tmux-continuum**: Auto-saves sessions every 15 minutes
+- **tmux-fuzzback**: `Ctrl+a ?` to fzf-search scrollback history
+- **tmux-fzf-url**: `Ctrl+a u` to fzf-pick URLs from scrollback
+- **base16-tmux**: Consistent theming with base16 colors
 
 ### 🔍 Advanced File Navigation
 
@@ -276,7 +319,5 @@ chezmoi status            # See what's changed
 chezmoi diff              # See exact differences
 ```
 
-
-https://github.com/neovim/neovim/releases/download/v0.11.3/nvim-linux-arm64.tar.gz
 
 

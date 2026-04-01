@@ -417,7 +417,7 @@ setup_fzf_colors
 theme github
 
 # Initialize zoxide [wants to be last] (smart cd)
-if command -v zoxide &> /dev/null; then
+if [[ -o interactive ]] && command -v zoxide &> /dev/null; then
     eval "$(zoxide init zsh)"
 fi
 # =============================================================================

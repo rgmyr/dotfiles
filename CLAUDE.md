@@ -32,7 +32,7 @@ Conditional blocks use `{{- if eq .chezmoi.os "darwin" }}` / `{{- else }}` / `{{
 | Source file | Deploys to | Purpose |
 |---|---|---|
 | `dot_zshrc.tmpl` | `~/.zshrc` | Shell config (oh-my-zsh, aliases, functions, theming) |
-| `dot_tmux.conf` | `~/.tmux.conf` | tmux with `Ctrl+a` prefix, vim nav, TPM plugins |
+| `dot_tmux.conf` | `~/.tmux.conf` | tmux with `Ctrl+s` prefix, vim nav, TPM plugins |
 | `dot_vimrc` | `~/.vimrc` | Vim fallback config |
 | `dot_config/nvim/` | `~/.config/nvim/` | Neovim with LazyVim, custom theme manager |
 | `dot_config/base16-shell/` | `~/.config/base16-shell/` | Terminal color schemes |

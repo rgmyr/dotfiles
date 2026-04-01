@@ -19,7 +19,7 @@ Sort of supports WSL - have to manually install `zsh-history-substring-search`, 
     - `jj` to escape from insert mode, `;` to enter command mode 
     - Collection of themes mapped to `<leader>` + `tg, ts, tt, tc` (github, solarized, tokyonight, catppuccin, etc.)
 - **Terminal multiplexing** with [tmux](https://github.com/tmux/tmux/wiki)
-    - `Ctrl+a` prefix instead of `Ctrl+b`
+    - `Ctrl+s` prefix instead of default `Ctrl+b`
     - `|` and `-` to split panes, rather than `%` and `"`
     - `vim`-style keybindings for pane navigation (`hjkl`) and resizing (`HJKL`)
     - Shell helpers: `tm`, `tp`, `tv`, `tn` for quick session management
@@ -133,39 +133,39 @@ tmux ls                   # List all sessions
 tmux attach -t myproject  # Attach to existing session
 tmux kill-session -t myproject
 
-# Inside tmux (Prefix: Ctrl+a)
-Ctrl+a d                  # Detach (keeps session running)
-Ctrl+a S                  # Choose session from list
-Ctrl+a N                  # Create new session (prompts for name)
-Ctrl+a $                  # Rename current session
-Ctrl+a X                  # Kill current session (with confirmation)
+# Inside tmux (Prefix: Ctrl+s)
+Ctrl+s d                  # Detach (keeps session running)
+Ctrl+s S                  # Choose session from list
+Ctrl+s N                  # Create new session (prompts for name)
+Ctrl+s $                  # Rename current session
+Ctrl+s X                  # Kill current session (with confirmation)
 ```
 
 #### Window Management
 ```bash
-Ctrl+a c                  # Create new window
-Ctrl+a n                  # Next window
-Ctrl+a p                  # Previous window
-Ctrl+a 0-9                # Switch to window number
-Ctrl+a ,                  # Rename window
-Ctrl+a &                  # Kill window
+Ctrl+s c                  # Create new window
+Ctrl+s n                  # Next window
+Ctrl+s p                  # Previous window
+Ctrl+s 0-9                # Switch to window number
+Ctrl+s ,                  # Rename window
+Ctrl+s &                  # Kill window
 Shift+Left/Right          # Switch windows (no prefix needed)
 ```
 
 #### Pane Management (Split screen)
 ```bash
-Ctrl+a |                  # Split vertically (custom binding)
-Ctrl+a -                  # Split horizontally (custom binding)
-Ctrl+a h/j/k/l            # Navigate panes (vim-style)
-Ctrl+a H/J/K/L            # Resize panes
-Ctrl+a z                  # Zoom/unzoom current pane
-Ctrl+a x                  # Kill current pane
-Ctrl+a Space              # Cycle through pane layouts
+Ctrl+s |                  # Split vertically (custom binding)
+Ctrl+s -                  # Split horizontally (custom binding)
+Ctrl+s h/j/k/l            # Navigate panes (vim-style)
+Ctrl+s H/J/K/L            # Resize panes
+Ctrl+s z                  # Zoom/unzoom current pane
+Ctrl+s x                  # Kill current pane
+Ctrl+s Space              # Cycle through pane layouts
 ```
 
 #### Copy Mode (vi-style)
 ```bash
-Ctrl+a [                  # Enter copy mode (vim-like scrolling)
+Ctrl+s [                  # Enter copy mode (vim-like scrolling)
 v                         # Begin selection
 C-v                       # Toggle rectangle selection
 y                         # Copy selection (stays in copy mode)
@@ -174,9 +174,9 @@ Enter                     # Copy selection and exit copy mode
 
 #### Power User Commands
 ```bash
-Ctrl+a e                  # Synchronize panes (type in all at once)
-Ctrl+a i                  # Pull last pane into current window
-Ctrl+a r                  # Reload tmux config
+Ctrl+s e                  # Synchronize panes (type in all at once)
+Ctrl+s i                  # Pull last pane into current window
+Ctrl+s r                  # Reload tmux config
 Alt+k                     # Smart clear (no prefix needed):
                           #   In shell: clears screen + scrollback
                           #   In programs (nvim, etc.): sends Ctrl+l
@@ -184,15 +184,15 @@ Alt+k                     # Smart clear (no prefix needed):
 
 #### Plugins (managed by TPM)
 ```bash
-Ctrl+a I                  # Install/update plugins
-Ctrl+a U                  # Update plugins
+Ctrl+s I                  # Install/update plugins
+Ctrl+s U                  # Update plugins
 ```
 
 Installed plugins:
-- **tmux-resurrect**: Save/restore sessions across reboots (`Ctrl+a Ctrl+s` save, `Ctrl+a Ctrl+r` restore)
+- **tmux-resurrect**: Save/restore sessions across reboots (`Ctrl+s Ctrl+s` save, i.e. prefix twice; `Ctrl+s Ctrl+r` restore)
 - **tmux-continuum**: Auto-saves sessions every 15 minutes
-- **tmux-fuzzback**: `Ctrl+a ?` to fzf-search scrollback history
-- **tmux-fzf-url**: `Ctrl+a u` to fzf-pick URLs from scrollback
+- **tmux-fuzzback**: `Ctrl+s /` to fzf-search scrollback history
+- **tmux-fzf-url**: `Ctrl+s u` to fzf-pick URLs from scrollback
 - **base16-tmux**: Consistent theming with base16 colors
 
 ### Advanced File Navigation

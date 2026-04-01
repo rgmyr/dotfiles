@@ -19,6 +19,9 @@ path=(
 # Remove duplicates from path
 typeset -U path
 
+# Disable Ctrl+s/Ctrl+q terminal flow control (frees Ctrl+s for tmux prefix)
+stty -ixon 2>/dev/null
+
 # Zsh options
 setopt AUTO_CD
 setopt HIST_VERIFY

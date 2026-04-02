@@ -68,8 +68,10 @@ plugins=(
 {{- end }}
 )
 
-# Enable command auto-correction
-ENABLE_CORRECTION="true"
+# Enable command auto-correction (interactive only)
+if [[ -o interactive ]]; then
+    ENABLE_CORRECTION="true"
+fi
 COMPLETION_WAITING_DOTS="%F{blue}waiting...%f"
 
 source $ZSH/oh-my-zsh.sh
@@ -82,7 +84,7 @@ source $ZSH/oh-my-zsh.sh
 if [[ -f "{{ .fzf_path }}/key-bindings.zsh" ]] && [[ -f "{{ .fzf_path }}/completion.zsh" ]]; then
     source {{ .fzf_path }}/key-bindings.zsh
     source {{ .fzf_path }}/completion.zsh
-else
+elif [[ -o interactive ]]; then
     echo "⚠️  fzf files not found at {{ .fzf_path }}"
     echo "💡 Update fzf_path in .chezmoi.toml.tmpl for this system"
 fi
@@ -99,16 +101,16 @@ alias ..='cd ..'
 alias ...='cd ../..'
 alias cdh='cd ~'
 
-# Modern CLI tools
-alias ls='eza --icons'
-alias ll='eza -la --icons --git'
-alias tree='eza --tree --icons'
-alias find='fd'
-# alias grep='rg'
-alias cd='z'  # zoxide smart cd
-
-# Explicit tmux conf path
-alias tmux='tmux -f ~/.tmux.conf'
+# Modern CLI tools (only in interactive shells to avoid breaking scripts/tools)
+if [[ -o interactive ]]; then
+    alias ls='eza --icons'
+    alias ll='eza -la --icons --git'
+    alias tree='eza --tree --icons'
+    alias find='fd'
+    # alias grep='rg'
+    alias cd='z'  # zoxide smart cd
+    alias tmux='tmux -f ~/.tmux.conf'
+fi
 
 # Clean vim configuration
 alias clean-nvim='rm -rf ~/.local/share/nvim ~/.local/state/nvim ~/.cache/nvim ~/.config/nvim'

@@ -2,7 +2,7 @@
 
 Cross-platform setup scripts and config files for Unix-like (macOS, Debian) machines, managed with [chezmoi](https://chezmoi.io).
 
-Sort of supports WSL - have to manually install `zsh-history-substring-search`, a newer version of `neovim`, there's some hacks to a silence warnings about `zsh` docker completions symlinking, etc.
+Sort of supports WSL - have to manually install `zsh-history-substring-search`, a newer version of `neovim`, there's some hacks to silence warnings about `zsh` docker completions symlinking, etc.
 
 ## The Setup
 
@@ -27,7 +27,7 @@ Sort of supports WSL - have to manually install `zsh-history-substring-search`, 
 - `uv` for Python
 - `node` and `npm` for JS/TS
 - `docker` integration and shortcuts
-- Git with enhanced aliases
+- `git` with enhanced aliases
 
 ## Installation
 

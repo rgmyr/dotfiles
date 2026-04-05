@@ -333,6 +333,7 @@ tn() {
 
 # Base16 Shell
 BASE16_SHELL="$HOME/.config/base16-shell/"
+BASE16_DEFAULT_THEME="github-dark-dimmed"
 [ -n "$PS1" ] && \
     [ -s "$BASE16_SHELL/profile_helper.sh" ] && \
         source "$BASE16_SHELL/profile_helper.sh"
@@ -416,6 +417,8 @@ theme() {
 
     local script_path="$BASE16_SHELL/scripts/$script_name"
     source "$script_path"
+    # Persist theme choice so new panes/shells load the same theme
+    ln -fs "$script_path" ~/.base16_theme
     echo "$label"
 
     # In tmux: set window-style fg/bg so ALL panes update immediately.
@@ -451,11 +454,8 @@ if [ -n "$ZSH_VERSION" ]; then
     compdef '_values "themes" "rgmyr[Custom dark theme]" "solarized[Solarized light]" "github[GitHub dark]" "list[Show available themes]"' theme
 fi
 
-# Set up FZF colors on shell startup
+# Set up FZF colors on shell startup (profile_helper already loaded the theme)
 setup_fzf_colors
-
-# Set default theme
-theme github
 
 # Initialize zoxide [wants to be last] (smart cd)
 if [[ -o interactive ]] && command -v zoxide &> /dev/null; then
